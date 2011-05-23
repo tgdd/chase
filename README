@@ -1,0 +1,31 @@
+Wed Jun 09 2010
+===============
+
+works on easy test cases ...
+
+
+Sun Jun 06 2010
+================
+
+The type def for fol formulas is in fol-parse-print (hmm...)
+
+Seems that fol-models.ml and fol-syntax are  superfluous now -
+incorporated into chase.ml
+
+parsing + printing used to use lib.ml -- but no more?
+
+.ocamlinit uses parseprint and also lib
+
+=====
+older 
+=====
+lib.ml is from Harrison
+
+fol-parse-print and fol-utils also (with some tweaks)
+
+main.ml implements the chase over abstract "models", just sets of facts, with closed sequents.
+
+models.ml is a smarter implmentation of models
+
+TODO: lift the chase to thi better notion of models and sequents
+
