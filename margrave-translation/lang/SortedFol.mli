@@ -46,8 +46,14 @@ val show_term : term -> string
 (** Displays a plaintext representation of a formula *)
 val show_formula : formula -> string
 
+(** Prints a list of formulas in plaintext to the channel, one per line *)
+val output_formulas : out_channel -> formula list -> unit
+
 (** Displays a LateX representation of the term *)
 val latex_term : term -> string
 
 (** Displays a LaTeX representation of the formula. *)
 val latex_formula : formula -> string
+
+(** Prints a list of formulas in LaTeX to the channel, one per line *)
+val output_latex_formulas : out_channel -> formula list -> unit

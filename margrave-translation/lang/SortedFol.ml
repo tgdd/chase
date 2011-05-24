@@ -1,5 +1,6 @@
 open StringUtil 
 open ListUtil
+open FunUtil
 
 (* Types *)
 
@@ -93,12 +94,20 @@ and show_quant : string -> name_t -> sort_t -> formula -> string =
   fun quant v vtype f ->
       "(" ^ quant ^ " " ^ v ^ " : " ^ vtype ^ " " ^ show_formula f ^ ")"
 
+let output_formulas oc formulas =
+  let formulas = List.map flatten_and_or formulas in
+  	output_string oc (unlines (List.map show_formula formulas))
+
+(* show for LaTeX *)
+
 let rec latex_term : term -> string =
   fun t -> match t with
     | Var(name) -> name
     | FunApp(name, args) ->
       "\\operatorname{" ^ name ^ "}( " ^
       comma_delim (List.map latex_term args) ^ ")"
+
+let tex_parens = brace_with " \\left( " " \\right) "
 
 let rec latex_formula : formula -> string =
   fun f -> match f with
@@ -110,23 +119,27 @@ let rec latex_formula : formula -> string =
     | Or(fs) ->
       "\\bigvee\\left\\lbrace " ^ comma_delim (List.map latex_formula fs) ^ 
       " \\right\\rbrace"
-    | Not(f) -> "\\left(\\neg " ^ latex_formula f ^ " \\right)"
+    | Not(f) -> tex_parens ("\\neg " ^ latex_formula f)
     | Implies(lhs, rhs) ->
-      "\\left( " ^ latex_formula lhs ^
-      " \\Rightarrow " ^ latex_formula rhs ^ " \\right)"
+      tex_parens (latex_formula lhs ^ " \\Rightarrow " ^ latex_formula rhs)
     | Iff(lhs, rhs) -> 
-      "\\left( " ^ latex_formula lhs ^
-      " \\Leftrightarrow " ^ latex_formula rhs ^ " \\right)"
+      tex_parens (latex_formula lhs ^ " \\Leftrightarrow " ^ latex_formula rhs)
     | Exists(name, sort, f) ->
      latex_quant "\\exists" name sort f
     | Forall(name, sort, f) -> 
      latex_quant "\\forall" name sort f
     | Equals(lhs, rhs) ->
-      "\\left( " ^ latex_term lhs ^ " = " ^ latex_term rhs ^ "\\right)"
+      tex_parens (latex_term lhs ^ " = " ^ latex_term rhs)
     | Pred(name, args) ->
       "\\operatorname{" ^ name ^ "}( " ^
       comma_delim (List.map latex_term args) ^ ")"
 and latex_quant : string -> name_t -> sort_t -> formula -> string =
   fun quant name sort f ->
-    "\\left( " ^ quant ^ "^{" ^ sort ^ "} " ^ name ^ " . " ^
-    latex_formula f ^ " \\right)"
+    tex_parens (quant ^ "^{" ^ sort ^ "} " ^ name ^ " . " ^ latex_formula f)
+
+let output_latex_formulas oc formulas =
+  let formulas = List.map flatten_and_or formulas in
+  	output_string oc & unlines & List.map ((brace_with "\\[" "\\]") <.>
+                                          latex_formula)
+                                        formulas
+

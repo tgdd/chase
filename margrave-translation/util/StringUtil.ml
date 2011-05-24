@@ -9,6 +9,9 @@ let unwords = String.concat " "
 (** Turns a list of strings into a string of comma delimited words. *)
 let comma_delim = String.concat ", "
 
+(** Braces the body with the left and right strings. *)
+let brace_with left right body = left ^ body ^ right
+
 (** Creates an indentation of the number of levels indicated using spaces. *)
 let indent : int -> string =
   fun i ->
