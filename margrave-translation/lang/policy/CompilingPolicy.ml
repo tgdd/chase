@@ -1,4 +1,4 @@
-open Fol
+open SortedFol
 open PolicySyntax
 
 let rule_head : rule -> formula =
@@ -7,9 +7,6 @@ let rule_head : rule -> formula =
 
 let compile_policy : policy -> theory =
   fun p ->
-    let target = SortedFol.sorted2unsorted p.target in
-    List.map (fun r -> Implies(And([target
-                                   ; SortedFol.sorted2unsorted r.rule_body]),
-                               rule_head r))
+    List.map (fun r -> Implies(And([p.target; r.rule_body]), rule_head r))
              p.rules
 

@@ -47,7 +47,7 @@ let supertype t n =
 let disjoint t n =
   Forall("x", Implies(And([Pred(n, [Var("x")])
                           ;Pred(t, [Var("x")])]),
-                      False))    
+                      Or([])))    
 
 (** Creates the type constraints for the type declarations.
     Does so by first turning the type delcarations into simple type

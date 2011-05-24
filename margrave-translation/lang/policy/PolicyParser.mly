@@ -46,12 +46,12 @@ start: LPAREN POLICY USES id
             variables_clause 
             rules_clause 
             rcomb_clause  RPAREN EOF
-        { { uses = $4; target = True; vars = $5; rules = $6
+        { { uses = $4; target = tru; vars = $5; rules = $6
           ; rule_combs = $7 } }
      | LPAREN POLICY USES id
             variables_clause 
             rules_clause  RPAREN EOF
-        { { uses = $4; target = True; vars = $5; rules = $6
+        { { uses = $4; target = tru; vars = $5; rules = $6
           ; rule_combs = {rule_fas = [] ; rule_overrides = [] } } }
      
 id: LOWID { $1 }
@@ -75,7 +75,7 @@ terms: terms2 { List.rev $1 }
 terms2: term { [$1] }
       | terms2 term { $2 :: $1 }
 term: LOWID { Var $1 }
-    | QUOTE LOWID { Const $2 }
+    | QUOTE LOWID { FunApp($2,[]) }
     | LOWID LPAREN terms RPAREN { FunApp($1, $3) }
 
 

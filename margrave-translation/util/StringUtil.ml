@@ -6,6 +6,9 @@ let unlines = String.concat "\n"
 (** Turns a list of strings into a string of words. *)
 let unwords = String.concat " "
 
+(** Turns a list of strings into a string of comma delimited words. *)
+let comma_delim = String.concat ", "
+
 (** Creates an indentation of the number of levels indicated using spaces. *)
 let indent : int -> string =
   fun i ->

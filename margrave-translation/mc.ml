@@ -3,7 +3,12 @@ open StringUtil
 open CompilingVocab
 open CompilingPolicy
 
-(** Write the formulas on the given output channel. *)
+let output_sorted_formulas formulas oc =
+  let formulas = List.map SortedFol.flatten_and_or formulas in
+  	output_string oc (unlines (List.map (fun f -> "\\[" ^ f ^ "\\]")
+      (List.map SortedFol.latex_formula formulas)))
+
+(** Write the FOL formulas on the given output channel. *)
 let output_formulas formulas oc =
   	output_string oc (unlines (List.map Fol.show_formula formulas))
 
@@ -29,7 +34,7 @@ let main () =
       call_with_out_channel outfile (output_formulas (compile_vocab voc))
     else if ends_with infile ".policy" then
       let pol = call_with_in_channel infile read_policy in
-      call_with_out_channel outfile (output_formulas (compile_policy pol))
+      call_with_out_channel outfile (output_sorted_formulas (compile_policy pol))
     else
       raise (Arg.Bad "bad filetype")
   end

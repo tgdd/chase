@@ -1,7 +1,6 @@
 open StringUtil 
 
 type term = Var of string
-          | Const of string
           | FunApp of string * term list
 type formula = And of formula list
              | Or of formula list
@@ -12,8 +11,6 @@ type formula = And of formula list
              | Forall of string * formula
              | Equals of term * term
              | Pred of string * term list
-             | True
-             | False
   
 type theory = formula list
 
@@ -22,12 +19,17 @@ let rec show_term : term -> string =
   fun t ->
     match t with
       | Var(name) -> name
-      | Const(name) -> "'" ^ name
-      | FunApp(fname, fargs) -> fname ^ "(" ^ (String.concat "," (List.map show_term fargs)) ^ ")" 
+      | FunApp(name, []) -> "'" ^ name
+      | FunApp(fname, fargs) -> fname ^
+                                "(" ^
+                                String.concat "," (List.map show_term fargs) ^
+                                ")" 
 
 let rec show_formula : formula -> string =
   fun f ->
       match f with
+        | And([]) -> "TRUE"
+        | Or([]) -> "FALSE"
         | And(fs) ->
           "(and " ^ unwords (List.map show_formula fs) ^ ")"
         | Or(fs) -> 
@@ -47,8 +49,6 @@ let rec show_formula : formula -> string =
           "(" ^ (show_term lhs) ^ " = " ^ (show_term rhs) ^ ")"
         | Pred(pred, terms) -> 
           "(" ^ unwords (pred :: (List.map show_term terms)) ^ ")"
-        | True -> "TRUE"
-        | False -> "FALSE"
 and show_quant =
   fun quant v f ->
       "(" ^ quant ^ " " ^ v ^ " " ^ show_formula f ^ ")"
