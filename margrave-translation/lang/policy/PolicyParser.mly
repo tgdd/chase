@@ -23,37 +23,40 @@ let parse_error s =
 %token RULES COLONDASH
 %token RCOMB OVERRIDES FA
 %token EOF
-%token <string> LOWID CAPID
+%token <string> LOWID CAPID FULLID
 
 %type <PolicySyntax.policy> start
 %start start
 
 %%
 
-start: LPAREN POLICY USES id 
+start: LPAREN POLICY USES filename 
             target_clause 
             variables_clause 
             rules_clause 
             rcomb_clause  RPAREN EOF
         { { uses = $4; target = $5; vars = $6; rules = $7; rule_combs = $8 } }
-     | LPAREN POLICY USES id
+     | LPAREN POLICY USES filename 
             target_clause 
             variables_clause 
             rules_clause  RPAREN EOF
         { { uses = $4; target = $5; vars = $6; rules = $7
           ; rule_combs = {rule_fas = [] ; rule_overrides = [] } } }
-     | LPAREN POLICY USES id 
+     | LPAREN POLICY USES filename 
             variables_clause 
             rules_clause 
             rcomb_clause  RPAREN EOF
         { { uses = $4; target = tru; vars = $5; rules = $6
           ; rule_combs = $7 } }
-     | LPAREN POLICY USES id
+     | LPAREN POLICY USES filename 
             variables_clause 
             rules_clause  RPAREN EOF
         { { uses = $4; target = tru; vars = $5; rules = $6
           ; rule_combs = {rule_fas = [] ; rule_overrides = [] } } }
-     
+
+filename: id { $1 }
+        | FULLID { $1 }
+
 id: LOWID { $1 }
   | CAPID { $1 }
 

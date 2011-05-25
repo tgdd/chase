@@ -7,11 +7,34 @@ open SortedFol
 
 (** The entry point for compiling policies to FOL theories with signature
     information. The input file contains the policy and the output file
-    is where the signature and FOL theory should be written. *)
+    is where the signature and FOL theory should be written.
+    
+    The general idea is to
+    1. Parse the policy file.
+    2. Use the policy to determine the vocabulary file to use.
+       (The vocabulary file is relative to the location of the policy file.)
+    3. Parse the vocabulary file.
+    4. Compile the vocabulary file to metadata, including
+       - a list of sorts 
+       - a list of sub-sort rules
+       - a list of function names
+       - a list of free variable names
+       - a function from relation names to types
+       - a function from function names to types
+       - a function from free variables to types
+       - a function to determine if two types intersect
+    5. Do a well-sortedness check on the formulas in the policy.
+    6. Compile the policy into a sorted FOL theory.
+    7. Create models for the theory.
+    8. Output the models to the file. *)
 let run : string -> string -> unit =
-  fun infile outfile ->
-    let policy = () in
-    ()
+  fun policyfile outfile ->
+    let policy = call_with_in_channel policyfile Policy.read_policy in
+    let uses = policy.Policy.uses in
+    let vocabfile = if not (Filename.is_relative uses) then uses else 
+        Filename.concat (Filename.dirname policyfile) uses in
+    let vocab = call_with_in_channel vocabfile Vocab.read_vocab in
+    print_endline (Vocab.show_vocab vocab)
 
 (** Utility for handling maybe. *)
 let maybe : 'a option -> 'a -> 'a =
@@ -71,6 +94,8 @@ let parse_arguments : unit -> (string * string) =
     match !infile with
     | None -> parse_arguments_error "policy file required"
     | Some(infile) -> 
+      if not (Sys.file_exists infile) then
+        raise (Failure "input file does not exist") else
       let out = maybe !outfile (determine_outfile infile) in
       (infile, out)
   end

@@ -6,11 +6,13 @@ let alpha = ['a'-'z''A'-'Z']
 let num = ['0'-'9']
 let lowid = ['a'-'z'](alpha|num)*
 let capid = ['A'-'Z'](alpha|num)*
+let fullid = ['a'-'z''A'-'Z''0'-'9''/''.''-']*
 let id = alpha(alpha|num)*
 let newline = ['\n''\r']|"\n\r"
 let whitespace = [' ' '\t']
 
 rule token = parse
+  | '"' { inquotes lexbuf }
   | whitespace { token lexbuf }
   | newline { LexUtil.incr_lineno lexbuf; token lexbuf }
   | '(' { LPAREN }
@@ -36,4 +38,8 @@ rule token = parse
   | "FA" { FA }
   | lowid as id { LOWID id }
   | capid as id { CAPID id }
+  | fullid as id { FULLID id }
   | eof { EOF }
+and inquotes = parse
+  | [^'"']* as id { FULLID id  }
+  | '"' { token lexbuf }
