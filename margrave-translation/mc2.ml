@@ -34,7 +34,7 @@ let run : string -> string -> unit =
     let vocabfile = if not (Filename.is_relative uses) then uses else 
         Filename.concat (Filename.dirname policyfile) uses in
     let vocab = call_with_in_channel vocabfile Vocab.read_vocab in
-    print_endline (Vocab.show_vocab vocab)
+    Vocab.print_vocab vocab
 
 (** Utility for handling maybe. *)
 let maybe : 'a option -> 'a -> 'a =

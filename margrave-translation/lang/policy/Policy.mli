@@ -37,3 +37,9 @@ val read_policy : in_channel -> policy
 
 (** Creates a string representation of a policy. *)
 val show_policy : policy -> string
+
+(** Writes the string representation of the policy to the specified channel. *)
+val output_policy : out_channel -> policy -> unit
+
+(** Prints the string representation of the policy to standard out. *)
+val print_policy : policy -> unit

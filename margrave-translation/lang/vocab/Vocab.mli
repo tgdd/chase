@@ -34,3 +34,9 @@ val read_vocab : in_channel -> vocab
 
 (** Creates a string representation of a vocab *)
 val show_vocab : vocab -> string
+
+(** Writes the string representation of the vocab to the specified channel. *)
+val output_vocab : out_channel -> vocab -> unit
+
+(** Prints the string representation of the vocab to standard out. *)
+val print_vocab : vocab -> unit
