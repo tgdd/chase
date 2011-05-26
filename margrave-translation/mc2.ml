@@ -3,7 +3,7 @@
     @author Theophilos Giannakopoulos (tgiannak@alum.wpi.edu) *)
 
 open IOUtil
-open SortedFol
+open CompilingVocab
 
 (** The entry point for compiling policies to FOL theories with signature
     information. The input file contains the policy and the output file

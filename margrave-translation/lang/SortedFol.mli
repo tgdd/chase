@@ -4,16 +4,41 @@
 (** The type for sort names *)
 type sort_t = string
 
-(** The type for function and predicate names *)
-type name_t = string
+(** The type for function names *)
+type func_t = string
+
+(** The type for predicate names *)
+type pred_t = string
 
 (** The type for variable names *)
 type var_t = string
 
+(** Signature in sorted FOL. *)
+type signature =
+  (** The names of the sorts. *)
+  { sort_names : sort_t list
+  (** Whether the second is a subsort of the first. *)
+  ; subsort : sort_t -> sort_t -> bool
+  (** Whether the two sorts are permitted to intersect. *)
+  ; intersect : sort_t -> sort_t -> bool
+  (** The function names. *)
+  ; func_names : func_t list
+  (** The ranks of the function. *)
+  ; func_rank : func_t -> sort_t list * sort_t
+  (** The names of the predicates. *)
+  ; pred_names : pred_t list
+  (** The ranks of the predicates. *)
+  ; pred_rank : pred_t -> sort_t list
+  (** The names of the free variables. *)
+  ; free_var_names : var_t list
+  (** The sorts of the free variables. *)
+  ; free_var_sort : var_t -> sort_t
+  }
+
 (** Terms in sorted FOL. Constants are represented as functions of no
     arguments. *)
 type term = Var of var_t 
-          | FunApp of name_t * term list
+          | FunApp of func_t * term list
 
 (** Formulas in sorted FOL. *)
 type formula = And of formula list
@@ -21,10 +46,10 @@ type formula = And of formula list
              | Not of formula
              | Implies of formula * formula
              | Iff of formula * formula
-             | Exists of name_t * sort_t * formula
-             | Forall of name_t * sort_t * formula
+             | Exists of var_t * sort_t * formula
+             | Forall of var_t * sort_t * formula
              | Equals of term * term
-             | Pred of var_t * term list
+             | Pred of pred_t * term list
   
 (** Shorthand for True which is represented as the empty conjunction. *)
 val tru : formula
@@ -34,14 +59,24 @@ val fals : formula
 
 type theory = formula list
 
-(** Flattens nested Ands and Ors. *)
-val flatten_and_or : formula -> formula
+(** Determines the free variables present in a formula. *)
+val free_vars : formula -> var_t list
 
+(** Determines if a formula is a sentence (has no free variables). *)
+val is_sentence : formula -> bool
+
+(** Determines if a formula is well-formed. The formula is well formed if
+    - all predicates, functions, sorts and free variables appear in the
+      signature, and
+	  - the formula is well-sorted
+    If the formula is well-formed, returns an empty list. Otherwise, the list
+    will contain messages describing the problems with the formula. *)
+val well_formed : signature -> formula -> string list
+
+(** Attempts to simplify the formula (while maintaining logical equivalence). *)
+val simplify : formula -> formula
 
 (* For displaying formulas and terms *)
-
-(** Displays a plaintext representation of a term. *)
-val show_term : term -> string
 
 (** Displays a plaintext representation of a formula *)
 val show_formula : formula -> string
@@ -49,11 +84,8 @@ val show_formula : formula -> string
 (** Prints a list of formulas in plaintext to the channel, one per line *)
 val output_formulas : out_channel -> formula list -> unit
 
-(** Displays a LateX representation of the term *)
-val latex_term : term -> string
-
 (** Displays a LaTeX representation of the formula. *)
-val latex_formula : formula -> string
+val show_latex_formula : formula -> string
 
 (** Prints a list of formulas in LaTeX to the channel, one per line *)
 val output_latex_formulas : out_channel -> formula list -> unit
