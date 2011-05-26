@@ -17,22 +17,16 @@ type var_t = string
 type signature =
   (** The names of the sorts. *)
   { sort_names : sort_t list
-  (** Whether the second is a subsort of the first. *)
-  ; subsort : sort_t -> sort_t -> bool
-  (** Whether the two sorts are permitted to intersect. *)
-  ; intersect : sort_t -> sort_t -> bool
+  (** Subsort relation, lhs supersort of rhs *)
+  ; subsort : (sort_t * sort_t) list
   (** The function names. *)
   ; func_names : func_t list
   (** The ranks of the function. *)
   ; func_rank : func_t -> sort_t list * sort_t
   (** The names of the predicates. *)
   ; pred_names : pred_t list
-  (** The ranks of the predicates. *)
-  ; pred_rank : pred_t -> sort_t list
-  (** The names of the free variables. *)
-  ; free_var_names : var_t list
-  (** The sorts of the free variables. *)
-  ; free_var_sort : var_t -> sort_t
+  (** The airty of the predicates. *)
+  ; pred_airty : pred_t -> sort_t list
   }
 
 (** Terms in sorted FOL. Constants are represented as functions of no
@@ -65,13 +59,21 @@ val free_vars : formula -> var_t list
 (** Determines if a formula is a sentence (has no free variables). *)
 val is_sentence : formula -> bool
 
+(** Gets a list of messages describing the signature violations. The first
+    argument is a list of the variables that are allowed to be free. *)
+val signature_violations : signature -> var_t list -> formula -> string list
+
+(** Gets a list of messages describing the sort violations. The second argument
+    is a list of the names and types of the free variables. This function
+    assumes that signature_violations has been called on it and returned no
+    messages. The behavior isundefined otherwise. *)
+val sort_violations : signature -> (var_t * sort_t) list -> formula -> string list
+
 (** Determines if a formula is well-formed. The formula is well formed if
     - all predicates, functions, sorts and free variables appear in the
       signature, and
-	  - the formula is well-sorted
-    If the formula is well-formed, returns an empty list. Otherwise, the list
-    will contain messages describing the problems with the formula. *)
-val well_formed : signature -> formula -> string list
+	  - the formula is well-sorted *)
+val well_formed : signature -> (var_t * sort_t) list -> formula -> bool
 
 (** Attempts to simplify the formula (while maintaining logical equivalence). *)
 val simplify : formula -> formula

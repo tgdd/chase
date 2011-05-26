@@ -18,14 +18,11 @@ type func_t = string
 
 type signature =
   { sort_names : sort_t list
-  ; subsort : sort_t -> sort_t -> bool
-  ; intersect : sort_t -> sort_t -> bool
+  ; subsort : (sort_t * sort_t) list
   ; func_names : func_t list
   ; func_rank : func_t -> sort_t list * sort_t
   ; pred_names : pred_t list
-  ; pred_rank : pred_t -> sort_t list
-  ; free_var_names : var_t list
-  ; free_var_sort : var_t -> sort_t
+  ; pred_airty : pred_t -> sort_t list
   }
 
 type term = Var of var_t 
@@ -179,6 +176,7 @@ let output_latex_formulas oc formulas =
 (* Information about formulas *)
 
 (* finding free vars *)
+(* helper *)
 let not_contains env term =
   if List.mem term env then [] else [term]
 
@@ -200,91 +198,93 @@ let rec free_vars' : var_t list -> formula -> var_t list =
 
 let free_vars fmla = free_vars' [] fmla
 
-(* is_sentence. Not just using free vars, because we can be faster than that *)
-let rec term_is_sentence env term = match term with 
-  | Var(name) -> List.mem name env
-  | FunApp(name, terms) -> ListUtil.and_map (term_is_sentence env) terms
-
-let rec is_sentence' env fmla = match fmla with
-  | And(fs) -> ListUtil.and_map (is_sentence' env) fs
-  | Or(fs) -> ListUtil.and_map (is_sentence' env) fs
-  | Not(f) -> is_sentence' env f
-  | Implies(lhs,rhs) -> is_sentence' env lhs && is_sentence' env rhs
-  | Iff(lhs,rhs) -> is_sentence' env lhs && is_sentence' env rhs
-  | Exists(v,s,f) -> is_sentence' (v::env) f
-  | Forall(v,s,f) -> is_sentence' (v::env) f
-  | Equals(lhs,rhs) -> term_is_sentence env lhs && term_is_sentence env rhs
-  | Pred(name, terms) -> ListUtil.and_map (term_is_sentence env) terms
-
-
-let is_sentence = is_sentence' []
+let is_sentence fmla = is_empty (free_vars fmla)
 
 type environment = (var_t * sort_t) list
 
-let get_type : environment -> signature -> term -> sort_t =
-  fun env sgn term -> match term with
-    | Var(name) -> 
-      (try List.assoc name env
-       with Not_found -> sgn.free_var_sort name)
+(** The type of the term, checking env then sig. Raises Not_found if the type
+    can't be found *)
+let get_type : signature -> environment -> term -> sort_t =
+  fun sgn env term -> match term with
+    | Var(name) -> List.assoc name env
     | FunApp(name, args) -> snd (sgn.func_rank name)
 
-let well_formed_term env sgn term = []
 
-(** An Equals is well formed if each of the LHS and RHS is well-formed and the
-    LHS and RHS have intersecting types. *)
-let well_formed_equals : environment -> signature -> term -> term -> string list =
-  fun env sgn lhs rhs ->
-    let msgs = (well_formed_term env sgn lhs @ well_formed_term env sgn rhs) in
-    if not (is_empty msgs) then msgs else
-    let lhs_type = get_type env sgn lhs in
-    let rhs_type = get_type env sgn rhs in
-    (if sgn.intersect lhs_type rhs_type
-    then None
-    else Some ("The types " ^ lhs_type ^ " and " ^ rhs_type ^ " do not intersect. " ^
-               show_formula (Equals(lhs, rhs)) ^ "will always be false.")) <::?>
-    msgs
+let rec term_signature_violations : signature -> var_t list -> term -> string list =
+  fun sgn env t -> match t with
+    | Var(name) ->
+      if List.mem name env then [] else
+      ["The variable " ^ name ^ "was not bound and was not provided in " ^
+       "the list of allowed free variables."]
+    | FunApp(name, args) ->
+      let viols = term_signature_violations sgn env in
+      let msgs = map_append viols args in
+      if List.mem name sgn.func_names then msgs else
+      ("Function name " ^ name ^ " does not appear in the signature.") :: msgs
 
-(** A Pred is well formed if the name is in the signature, the types of the
-    arguments are well formed and the arguments match the types declared in
-    the signature. *)
-let well_formed_pred : environment
-                    -> signature
-                    -> pred_t
-                    -> term list
-                    -> string list =
-  fun env sgn name terms ->
-    let msgs = map_append (well_formed_term env sgn) terms in
-    if not (is_empty msgs) then msgs else
-    let types = List.map (get_type env sgn) terms in
-    (if List.mem name sgn.pred_names 
-     then (if sgn.pred_rank name = types then None
-           else Some ("The type of predicate " ^ name ^
-                      " does not match the signature."))
-     else Some ("The predicate name " ^ name ^
-                " does not appear in the signature.")) <::?>
-    msgs
+let rec signature_violations : signature
+                            -> var_t list
+                            -> formula
+                            -> string list =
+  fun sgn env fmla -> match fmla with
+    | And(fs) -> map_append (signature_violations sgn env) fs
+    | Or(fs) -> map_append (signature_violations sgn env) fs
+    | Not(f) -> signature_violations sgn env f
+    | Implies(lhs,rhs) ->
+      let viols = signature_violations sgn env in
+      viols lhs @ viols rhs
+    | Iff(lhs,rhs) ->
+      let viols = signature_violations sgn env in
+      viols lhs @ viols rhs
+    | Exists(v,s,f) ->
+      let msgs = signature_violations sgn (v::env) f in
+      if List.mem s sgn.sort_names then msgs else
+      ("The sort name " ^ s ^ " does not appear in the signature.") :: msgs
+    | Forall(v,s,f) ->
+      let msgs = signature_violations sgn (v::env) f in
+      if List.mem s sgn.sort_names then msgs else
+      ("The sort name " ^ s ^ " does not appear in the signature.") :: msgs
+    | Equals(lhs,rhs) ->
+      let viols = term_signature_violations sgn env in
+      viols lhs @ viols rhs
+    | Pred(name, terms) ->
+      let msgs = map_append (term_signature_violations sgn env) terms in
+      if List.mem name sgn.pred_names then msgs else
+      ("Predicate name " ^ name ^ " does not appear in the signature.") :: msgs
 
-let rec well_formed' : environment
-                    -> signature
-                    -> formula
-                    -> string list =
-  fun env sgn fmla -> match fmla with
-    | And(fs) -> ListUtil.map_append (well_formed' env sgn) fs
-    | Or(fs) -> ListUtil.map_append (well_formed' env sgn) fs
-    | Not(f) -> well_formed' env sgn f
-    | Implies(lhs,rhs) -> well_formed' env sgn lhs @ well_formed' env sgn rhs
-    | Iff(lhs,rhs) -> well_formed' env sgn lhs @ well_formed' env sgn rhs
-    | Exists(v,s,f) -> well_formed_quant env sgn v s f
-    | Forall(v,s,f) -> well_formed_quant env sgn v s f
-    | Equals(lhs,rhs) -> well_formed_equals env sgn lhs rhs
-    | Pred(name, terms) -> well_formed_pred env sgn name terms
+let meets_signature sgn env fmla = is_empty (signature_violations sgn env fmla)
 
-and well_formed_quant : environment -> signature -> var_t -> sort_t -> formula -> string list =
-  fun env sgn v s f ->
-    (if (List.mem s sgn.sort_names) then None else
-     Some ("The sort " ^ s ^ " does not appear in the signature.")) <::?>
-    well_formed' ((v,s)::env) sgn f
+let rec term_sort_violations : signature -> environment -> term -> string list =
+  fun sgn env t -> match t with
+    | _ -> []
 
-let well_formed sgn fmla = 
-  let env = (List.map (fun v -> (v, sgn.free_var_sort v)) sgn.free_var_names) in
-  well_formed' env sgn fmla
+let rec sort_violations : signature -> environment -> formula -> string list =
+  fun sgn env fmla -> match fmla with
+    | And(fs) -> map_append (sort_violations sgn env) fs
+    | Or(fs) -> map_append (sort_violations sgn env) fs
+    | Not(f) -> sort_violations sgn env f
+    | Implies(lhs,rhs) ->
+      let viols = sort_violations sgn env in
+      viols lhs @ viols rhs
+    | Iff(lhs,rhs) ->
+      let viols = sort_violations sgn env in
+      viols lhs @ viols rhs
+    | Exists(v,s,f) -> sort_violations sgn ((v,s)::env) f
+    | Forall(v,s,f) -> sort_violations sgn ((v,s)::env) f
+    | Equals(lhs,rhs) ->
+      let viols = term_sort_violations sgn env in
+      viols lhs @ viols rhs
+    | Pred(name, terms) ->
+      let msgs = map_append (term_sort_violations sgn env) terms in
+      let used_airty = List.map (get_type sgn env) terms in
+      let expected_airty = sgn.pred_airty name in
+      if expected_airty = used_airty then msgs else
+      ("Predicate " ^ name ^ " expects airty (" ^ comma_delim expected_airty ^
+       ")but was used with airty (" ^ comma_delim used_airty ^ ").") :: msgs
+
+
+let well_sorted sgn env fmla = is_empty (sort_violations sgn env fmla)
+
+let well_formed  : signature -> environment -> formula -> bool =
+  fun sgn env fmla ->
+    meets_signature sgn (List.map fst env) fmla || well_sorted sgn env fmla
