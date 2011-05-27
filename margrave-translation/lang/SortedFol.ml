@@ -18,7 +18,7 @@ type func_t = string
 
 type signature =
   { sort_names : sort_t list
-  ; subsort : (sort_t * sort_t) list
+  ; subsorts : (sort_t * sort_t) list
   ; func_names : func_t list
   ; func_rank : func_t -> sort_t list * sort_t
   ; pred_names : pred_t list
@@ -202,14 +202,6 @@ let is_sentence fmla = is_empty (free_vars fmla)
 
 type environment = (var_t * sort_t) list
 
-(** The type of the term, checking env then sig. Raises Not_found if the type
-    can't be found *)
-let get_type : signature -> environment -> term -> sort_t =
-  fun sgn env term -> match term with
-    | Var(name) -> List.assoc name env
-    | FunApp(name, args) -> snd (sgn.func_rank name)
-
-
 let rec term_signature_violations : signature -> var_t list -> term -> string list =
   fun sgn env t -> match t with
     | Var(name) ->
@@ -254,9 +246,23 @@ let rec signature_violations : signature
 
 let meets_signature sgn env fmla = is_empty (signature_violations sgn env fmla)
 
-let rec term_sort_violations : signature -> environment -> term -> string list =
+let rec is_subsort sgn sub sup = match sub, sup with
+    | [], [] -> true
+    | (x::xs), (y::ys) when List.mem (x,y) sgn.subsorts -> is_subsort sgn xs ys
+    | _ -> false
+
+let rec term_sort_violations : signature -> environment -> term -> (string list * sort_t) =
   fun sgn env t -> match t with
-    | _ -> []
+    | Var(name) -> ([], List.assoc name env)
+    | FunApp(name, args) -> 
+      let res = List.map (term_sort_violations sgn env) args in
+      let msgs = map_append fst res in
+      let used_airty = List.map snd res in
+      let expected_airty, ret_sort = sgn.func_rank name in
+      if is_subsort sgn expected_airty used_airty then (msgs, ret_sort)  else
+      (("Function " ^ name ^ " expects airty (" ^ comma_delim expected_airty ^
+       ") but was used with airty (" ^ comma_delim used_airty ^ ").") :: msgs,
+       ret_sort)
 
 let rec sort_violations : signature -> environment -> formula -> string list =
   fun sgn env fmla -> match fmla with
@@ -272,15 +278,16 @@ let rec sort_violations : signature -> environment -> formula -> string list =
     | Exists(v,s,f) -> sort_violations sgn ((v,s)::env) f
     | Forall(v,s,f) -> sort_violations sgn ((v,s)::env) f
     | Equals(lhs,rhs) ->
-      let viols = term_sort_violations sgn env in
+      let viols = (fun t -> fst (term_sort_violations sgn env t)) in
       viols lhs @ viols rhs
-    | Pred(name, terms) ->
-      let msgs = map_append (term_sort_violations sgn env) terms in
-      let used_airty = List.map (get_type sgn env) terms in
+    | Pred(name, args) ->
+      let res = List.map (term_sort_violations sgn env) args in
+      let msgs = map_append fst res in
+      let used_airty = List.map snd res in
       let expected_airty = sgn.pred_airty name in
-      if expected_airty = used_airty then msgs else
+      if is_subsort sgn expected_airty used_airty then msgs else
       ("Predicate " ^ name ^ " expects airty (" ^ comma_delim expected_airty ^
-       ")but was used with airty (" ^ comma_delim used_airty ^ ").") :: msgs
+       ") but was used with airty (" ^ comma_delim used_airty ^ ").") :: msgs
 
 
 let well_sorted sgn env fmla = is_empty (sort_violations sgn env fmla)

@@ -18,7 +18,7 @@ type signature =
   (** The names of the sorts. *)
   { sort_names : sort_t list
   (** Subsort relation, lhs supersort of rhs *)
-  ; subsort : (sort_t * sort_t) list
+  ; subsorts : (sort_t * sort_t) list
   (** The function names. *)
   ; func_names : func_t list
   (** The ranks of the function. *)
