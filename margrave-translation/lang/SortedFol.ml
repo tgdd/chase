@@ -2,11 +2,6 @@ open StringUtil
 open ListUtil
 open FunUtil
 
-(* little helpers *)
-let (<::?>) mx xs = match mx with
-  | None -> xs
-  | Some x -> x::xs
-
 (******************************************************************************)
 (* Types *)
 
@@ -16,14 +11,67 @@ type sort_t = string
 type pred_t = string
 type func_t = string
 
-type signature =
-  { sort_names : sort_t list
-  ; subsorts : (sort_t * sort_t) list
-  ; func_names : func_t list
-  ; func_rank : func_t -> sort_t list * sort_t
-  ; pred_names : pred_t list
-  ; pred_airty : pred_t -> sort_t list
-  }
+(* actual data structures *)
+module StringSet = Set.Make(String)
+module StringMap = Map.Make(String)
+module StringGraph = Graph.Persistent.Digraph.Concrete(GraphUtil.StringVertex)
+
+(* for ease of reading *)
+module SG = StringGraph (* sort graph *)
+module PM = StringMap  (* pred map *)
+module FM = StringMap (* func map *)
+
+(* Signature *)
+module Signature =
+  struct
+    type t = { sorts : SG.t
+             ; funcs : (sort_t list * sort_t) FM.t
+             ; preds : sort_t list PM.t
+             }
+    let empty = { sorts = SG.empty
+                ; funcs = FM.empty
+                ; preds = PM.empty
+                }
+    
+    let add_sort sgn sup subs =
+      let build_graph g sub = SG.add_edge g sup sub in
+      { sgn with sorts = List.fold_left build_graph sgn.sorts subs }
+    
+    let add_func sgn f arity res =
+      if FM.mem f sgn.funcs then invalid_arg "func already in sig" else
+      { sgn with funcs = FM.add f (arity, res) sgn.funcs }
+    
+    let add_pred sgn p arity =
+      if PM.mem p sgn.preds then invalid_arg "pred already in sig" else
+      { sgn with preds = PM.add p arity sgn.preds }
+    
+    let sort_mem sgn s = SG.mem_vertex sgn.sorts s
+    let is_subsort sgn sup sub = SG.mem_edge sgn.sorts sup sub
+    let func_mem sgn f = FM.mem f sgn.funcs
+    let func_rank sgn f = FM.find f sgn.funcs
+    let pred_mem sgn p = PM.mem p sgn.preds
+    let pred_arity sgn p = PM.find p sgn.preds
+    
+    let validate_sort sgn name s =
+      if SG.mem_vertex sgn.sorts s then [] else 
+      ["Sort " ^ s ^ " is used in a definition of " ^ name ^ ", but does not " ^
+       "appear in the sorts of this signature."]
+    let validate_func sgn f rank =
+      validate_sort sgn f (snd rank) @
+      map_append (validate_sort sgn f) (fst rank)
+    let validate_pred sgn p arity =
+      map_append (validate_sort sgn p) arity
+    let validate sgn =
+      let msgs = FM.fold (fun f rank msgs -> (validate_func sgn f rank) @ msgs)
+                         sgn.funcs [] in
+      let msgs = PM.fold (fun p arity msgs -> (validate_pred sgn p arity) @ msgs)
+                         sgn.preds msgs in
+      msgs
+    
+    let is_valid sgn = is_empty (validate sgn)
+  end
+
+type sig_t = Signature.t
 
 type term = Var of var_t 
           | FunApp of func_t * term list
@@ -202,7 +250,7 @@ let is_sentence fmla = is_empty (free_vars fmla)
 
 type environment = (var_t * sort_t) list
 
-let rec term_signature_violations : signature -> var_t list -> term -> string list =
+let rec term_signature_violations : sig_t -> var_t list -> term -> string list =
   fun sgn env t -> match t with
     | Var(name) ->
       if List.mem name env then [] else
@@ -211,10 +259,10 @@ let rec term_signature_violations : signature -> var_t list -> term -> string li
     | FunApp(name, args) ->
       let viols = term_signature_violations sgn env in
       let msgs = map_append viols args in
-      if List.mem name sgn.func_names then msgs else
+      if Signature.func_mem sgn name then msgs else
       ("Function name " ^ name ^ " does not appear in the signature.") :: msgs
 
-let rec signature_violations : signature
+let rec signature_violations : sig_t
                             -> var_t list
                             -> formula
                             -> string list =
@@ -230,41 +278,42 @@ let rec signature_violations : signature
       viols lhs @ viols rhs
     | Exists(v,s,f) ->
       let msgs = signature_violations sgn (v::env) f in
-      if List.mem s sgn.sort_names then msgs else
+      if Signature.sort_mem sgn s then msgs else
       ("The sort name " ^ s ^ " does not appear in the signature.") :: msgs
     | Forall(v,s,f) ->
       let msgs = signature_violations sgn (v::env) f in
-      if List.mem s sgn.sort_names then msgs else
+      if Signature.sort_mem sgn s then msgs else
       ("The sort name " ^ s ^ " does not appear in the signature.") :: msgs
     | Equals(lhs,rhs) ->
       let viols = term_signature_violations sgn env in
       viols lhs @ viols rhs
     | Pred(name, terms) ->
       let msgs = map_append (term_signature_violations sgn env) terms in
-      if List.mem name sgn.pred_names then msgs else
+      if Signature.pred_mem sgn name then msgs else
       ("Predicate name " ^ name ^ " does not appear in the signature.") :: msgs
 
 let meets_signature sgn env fmla = is_empty (signature_violations sgn env fmla)
 
 let rec is_subsort sgn sub sup = match sub, sup with
     | [], [] -> true
-    | (x::xs), (y::ys) when List.mem (x,y) sgn.subsorts -> is_subsort sgn xs ys
+    | (x::xs), (y::ys) when Signature.is_subsort sgn x y ->
+      is_subsort sgn xs ys
     | _ -> false
 
-let rec term_sort_violations : signature -> environment -> term -> (string list * sort_t) =
+let rec term_sort_violations : sig_t -> environment -> term -> (string list * sort_t) =
   fun sgn env t -> match t with
     | Var(name) -> ([], List.assoc name env)
     | FunApp(name, args) -> 
       let res = List.map (term_sort_violations sgn env) args in
       let msgs = map_append fst res in
-      let used_airty = List.map snd res in
-      let expected_airty, ret_sort = sgn.func_rank name in
-      if is_subsort sgn expected_airty used_airty then (msgs, ret_sort)  else
-      (("Function " ^ name ^ " expects airty (" ^ comma_delim expected_airty ^
-       ") but was used with airty (" ^ comma_delim used_airty ^ ").") :: msgs,
+      let used_arity = List.map snd res in
+      let expected_arity, ret_sort = Signature.func_rank sgn name in
+      if is_subsort sgn expected_arity used_arity then (msgs, ret_sort)  else
+      (("Function " ^ name ^ " expects arity (" ^ comma_delim expected_arity ^
+       ") but was used with arity (" ^ comma_delim used_arity ^ ").") :: msgs,
        ret_sort)
 
-let rec sort_violations : signature -> environment -> formula -> string list =
+let rec sort_violations : sig_t -> environment -> formula -> string list =
   fun sgn env fmla -> match fmla with
     | And(fs) -> map_append (sort_violations sgn env) fs
     | Or(fs) -> map_append (sort_violations sgn env) fs
@@ -278,20 +327,23 @@ let rec sort_violations : signature -> environment -> formula -> string list =
     | Exists(v,s,f) -> sort_violations sgn ((v,s)::env) f
     | Forall(v,s,f) -> sort_violations sgn ((v,s)::env) f
     | Equals(lhs,rhs) ->
-      let viols = (fun t -> fst (term_sort_violations sgn env t)) in
-      viols lhs @ viols rhs
+      (* todo: check for connected components *)
+      let viols = term_sort_violations sgn env in
+      let lhs_msgs, lhs_sort = viols lhs in
+      let rhs_msgs, rhs_sort = viols rhs in
+      lhs_msgs @ rhs_msgs
     | Pred(name, args) ->
       let res = List.map (term_sort_violations sgn env) args in
       let msgs = map_append fst res in
-      let used_airty = List.map snd res in
-      let expected_airty = sgn.pred_airty name in
-      if is_subsort sgn expected_airty used_airty then msgs else
-      ("Predicate " ^ name ^ " expects airty (" ^ comma_delim expected_airty ^
-       ") but was used with airty (" ^ comma_delim used_airty ^ ").") :: msgs
+      let used_arity = List.map snd res in
+      let expected_arity = Signature.pred_arity sgn name in
+      if is_subsort sgn expected_arity used_arity then msgs else
+      ("Predicate " ^ name ^ " expects arity (" ^ comma_delim expected_arity ^
+       ") but was used with arity (" ^ comma_delim used_arity ^ ").") :: msgs
 
 
 let well_sorted sgn env fmla = is_empty (sort_violations sgn env fmla)
 
-let well_formed  : signature -> environment -> formula -> bool =
+let well_formed  : sig_t -> environment -> formula -> bool =
   fun sgn env fmla ->
     meets_signature sgn (List.map fst env) fmla || well_sorted sgn env fmla

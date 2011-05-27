@@ -14,20 +14,44 @@ type pred_t = string
 type var_t = string
 
 (** Signature in sorted FOL. *)
-type signature =
-  (** The names of the sorts. *)
-  { sort_names : sort_t list
-  (** Subsort relation, lhs supersort of rhs *)
-  ; subsorts : (sort_t * sort_t) list
-  (** The function names. *)
-  ; func_names : func_t list
-  (** The ranks of the function. *)
-  ; func_rank : func_t -> sort_t list * sort_t
-  (** The names of the predicates. *)
-  ; pred_names : pred_t list
-  (** The airty of the predicates. *)
-  ; pred_airty : pred_t -> sort_t list
-  }
+module Signature :
+  sig
+    (** Signature type *)
+    type t
+    (** Empty signature *)
+    val empty : t
+    (** Add the sort with subsorts to the signature. If the sort/subsort pairs
+        are already in the sig, there is no change. *)
+    val add_sort : t -> sort_t -> sort_t list -> t
+    (** Add the function with the arity and result sort to the signature.
+        If the function is already in the sig then Invalid_argument is
+        raised. *)
+    val add_func : t -> func_t -> sort_t list -> sort_t -> t
+    (** Add the predicate witht he arity to the signature. If the pred is
+        already in the sig, then Invalid_argument is raised. *)
+    val add_pred : t -> pred_t -> sort_t list -> t
+    
+    (** Whether the signature has the sort name. *)
+    val sort_mem : t -> sort_t -> bool
+    (** Subsort relation, lhs supersort of rhs *)
+    val is_subsort : t -> sort_t -> sort_t -> bool
+    (** The function names. *)
+    val func_mem : t -> func_t -> bool
+    (** The ranks of the function. *)
+    val func_rank : t -> func_t -> sort_t list * sort_t
+    (** The names of the predicates. *)
+    val pred_mem : t -> pred_t -> bool
+    (** The arity of the predicates. *)
+    val pred_arity : t -> pred_t -> sort_t list
+    (** Validates the signature, ensuring that all sorts are represented.
+        The list returns are the messages describing the errors. *)
+    val validate : t -> string list
+    (** Validates the signature, ensuring that all sorts are represented. *)
+    val is_valid : t -> bool
+  end
+  
+(** Shorthand for signature type *)
+type sig_t = Signature.t
 
 (** Terms in sorted FOL. Constants are represented as functions of no
     arguments. *)
@@ -61,19 +85,19 @@ val is_sentence : formula -> bool
 
 (** Gets a list of messages describing the signature violations. The first
     argument is a list of the variables that are allowed to be free. *)
-val signature_violations : signature -> var_t list -> formula -> string list
+val signature_violations : Signature.t -> var_t list -> formula -> string list
 
 (** Gets a list of messages describing the sort violations. The second argument
     is a list of the names and types of the free variables. This function
     assumes that signature_violations has been called on it and returned no
     messages. The behavior isundefined otherwise. *)
-val sort_violations : signature -> (var_t * sort_t) list -> formula -> string list
+val sort_violations : sig_t -> (var_t * sort_t) list -> formula -> string list
 
 (** Determines if a formula is well-formed. The formula is well formed if
     - all predicates, functions, sorts and free variables appear in the
       signature, and
 	  - the formula is well-sorted *)
-val well_formed : signature -> (var_t * sort_t) list -> formula -> bool
+val well_formed : sig_t -> (var_t * sort_t) list -> formula -> bool
 
 (** Attempts to simplify the formula (while maintaining logical equivalence). *)
 val simplify : formula -> formula
