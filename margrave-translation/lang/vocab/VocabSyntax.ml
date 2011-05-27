@@ -1,30 +1,30 @@
 open StringUtil
 
-(* (Type A > B C) (Type D) mean type A is a supertype of B and C, D is a type *)
-type type_decl = { type_name : string
-                 ; subtypes : string list
-                 }
+(* (Type A > B C) (Type D) mean sort A is a supersort of B and C, D is a sort *)
+type sort = { sort_name : string
+            ; subsorts : string list
+            }
 
-(* (Pred R A B C) means predicate R is of type AxBxC *)
+(* (Pred R A B C) means predicate R is of sort AxBxC *)
 type pred = { pred_name : string
-            ; pred_type : string list
+            ; pred_arity : string list
             }
 
 (* (Const x A) means x is a constant of type A *)
 type const = { const_name : string
-             ; const_type : string
+             ; const_sort : string
              }
 
 (* (Function f A B C) means f is a function from AxB to C *)
 type func = { func_name : string
-            ; func_arg_types : string list
-            ; func_result_type : string
+            ; func_arity : string list
+            ; func_sort : string
             }
 
 (* a vocab is a combination of the above "(" "Vocab" <id> <TYPES-CLAUSE>   
    <PREDS-CLAUSE> <CONSTANTS-CLAUSE> <FUNCTIONS-CLAUSE> ")"                *)
 type vocab = { vocab_name : string
-             ; types : type_decl list
+             ; sorts : sort list
              ; preds : pred list
              ; consts : const list
              ; funcs : func list
@@ -38,20 +38,20 @@ let empty_check f vals = match f, vals with
   | f, [] -> ""
   | f, xs -> f xs
 
-let show_type_decl : int -> type_decl -> string =
-  fun i t ->
+let show_sort : int -> sort -> string =
+  fun i s ->
       indent i ^
       "(Type " ^
-      t.type_name ^
-      empty_check (fun xs -> " > " ^ (unwords t.subtypes))
-                  t.subtypes ^
+      s.sort_name ^
+      empty_check (fun xs -> " > " ^ (unwords s.subsorts))
+                  s.subsorts ^
       ")"
 
-let show_type_decls : int -> type_decl list -> string =
+let show_sorts : int -> sort list -> string =
   fun i ts ->
       indent i ^
       "(Types\n" ^
-      unlines (List.map (show_type_decl (i + 1)) ts) ^
+      unlines (List.map (show_sort (i + 1)) ts) ^
       ")"
 
 let show_pred : int -> pred -> string =
@@ -60,7 +60,7 @@ let show_pred : int -> pred -> string =
       "(Predicate " ^
       p.pred_name ^
       " " ^
-      (unwords p.pred_type) ^
+      (unwords p.pred_arity) ^
       ")"
 
 let show_preds : int -> pred list -> string =
@@ -80,7 +80,7 @@ let show_const : int -> const -> string =
     "(Constant " ^
     c.const_name ^ 
     " " ^ 
-    c.const_type ^
+    c.const_sort ^
     ")"
 
 let show_consts : int -> const list -> string =
@@ -100,9 +100,9 @@ let show_func : int -> func -> string =
       "(Function " ^
       f.func_name ^
       " " ^
-      (unwords f.func_arg_types) ^
+      (unwords f.func_arity) ^
       " " ^
-      f.func_result_type ^
+      f.func_sort ^
       ")"
 
 let show_funcs : int -> func list -> string =
@@ -119,7 +119,7 @@ let maybe_show_funcs : int -> func list -> string =
 (** Produces a prettified string representation of the vocab *)
 let show_vocab :  vocab -> string =
   fun v ->
-    let t = (show_type_decls 1 v.types) in
+    let t = (show_sorts 1 v.sorts) in
     let p = (maybe_show_preds 1 v.preds) in
     let c = (maybe_show_consts 1 v.consts) in
     let f = (maybe_show_funcs 1 v.funcs) in

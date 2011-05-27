@@ -15,9 +15,11 @@ type func_t = string
 module StringSet = Set.Make(String)
 module StringMap = Map.Make(String)
 module StringGraph = Graph.Persistent.Digraph.Concrete(GraphUtil.StringVertex)
+module StringGraphOper = Graph.Oper.P(StringGraph)
 
 (* for ease of reading *)
 module SG = StringGraph (* sort graph *)
+module SGOper = StringGraphOper
 module PM = StringMap  (* pred map *)
 module FM = StringMap (* func map *)
 
@@ -28,21 +30,33 @@ module Signature =
              ; funcs : (sort_t list * sort_t) FM.t
              ; preds : sort_t list PM.t
              }
-    let empty = { sorts = SG.empty
-                ; funcs = FM.empty
-                ; preds = PM.empty
-                }
+    let init sorts subsorts =
+      { sorts =
+          (let g = List.fold_left SG.add_vertex SG.empty sorts in
+          let add_edge = fun g ss -> SG.add_edge g (fst ss) (snd ss) in
+          let g = List.fold_left add_edge g subsorts in
+          SGOper.transitive_closure ~reflexive:true g)
+      ; funcs = FM.empty
+      ; preds = PM.empty
+      }
     
-    let add_sort sgn sup subs =
-      let build_graph g sub = SG.add_edge g sup sub in
-      { sgn with sorts = List.fold_left build_graph sgn.sorts subs }
+    let invalid_name f =
+      invalid_arg ("Item with name " ^ f ^ " already in signature.")
+    let invalid_sort s = 
+      invalid_arg ("Sort " ^ s ^ " used, but does not appear in signature.")
+    let check_sort sgn s =
+      if SG.mem_vertex sgn.sorts s then () else invalid_sort s
+    let check sgn name sorts =
+      if FM.mem name sgn.funcs || PM.mem name sgn.preds
+      then invalid_name name else
+      List.iter (check_sort sgn) sorts
     
     let add_func sgn f arity res =
-      if FM.mem f sgn.funcs then invalid_arg "func already in sig" else
+      check sgn f (res::arity);
       { sgn with funcs = FM.add f (arity, res) sgn.funcs }
     
     let add_pred sgn p arity =
-      if PM.mem p sgn.preds then invalid_arg "pred already in sig" else
+      check sgn p arity;
       { sgn with preds = PM.add p arity sgn.preds }
     
     let sort_mem sgn s = SG.mem_vertex sgn.sorts s
@@ -51,24 +65,6 @@ module Signature =
     let func_rank sgn f = FM.find f sgn.funcs
     let pred_mem sgn p = PM.mem p sgn.preds
     let pred_arity sgn p = PM.find p sgn.preds
-    
-    let validate_sort sgn name s =
-      if SG.mem_vertex sgn.sorts s then [] else 
-      ["Sort " ^ s ^ " is used in a definition of " ^ name ^ ", but does not " ^
-       "appear in the sorts of this signature."]
-    let validate_func sgn f rank =
-      validate_sort sgn f (snd rank) @
-      map_append (validate_sort sgn f) (fst rank)
-    let validate_pred sgn p arity =
-      map_append (validate_sort sgn p) arity
-    let validate sgn =
-      let msgs = FM.fold (fun f rank msgs -> (validate_func sgn f rank) @ msgs)
-                         sgn.funcs [] in
-      let msgs = PM.fold (fun p arity msgs -> (validate_pred sgn p arity) @ msgs)
-                         sgn.preds msgs in
-      msgs
-    
-    let is_valid sgn = is_empty (validate sgn)
   end
 
 type sig_t = Signature.t

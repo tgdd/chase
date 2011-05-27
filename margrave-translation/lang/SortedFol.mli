@@ -18,11 +18,8 @@ module Signature :
   sig
     (** Signature type *)
     type t
-    (** Empty signature *)
-    val empty : t
-    (** Add the sort with subsorts to the signature. If the sort/subsort pairs
-        are already in the sig, there is no change. *)
-    val add_sort : t -> sort_t -> sort_t list -> t
+    (** Initial signature from list of sorts and subsort relation. *)
+    val init : sort_t list -> (sort_t * sort_t) list -> t
     (** Add the function with the arity and result sort to the signature.
         If the function is already in the sig then Invalid_argument is
         raised. *)
@@ -43,11 +40,6 @@ module Signature :
     val pred_mem : t -> pred_t -> bool
     (** The arity of the predicates. *)
     val pred_arity : t -> pred_t -> sort_t list
-    (** Validates the signature, ensuring that all sorts are represented.
-        The list returns are the messages describing the errors. *)
-    val validate : t -> string list
-    (** Validates the signature, ensuring that all sorts are represented. *)
-    val is_valid : t -> bool
   end
   
 (** Shorthand for signature type *)

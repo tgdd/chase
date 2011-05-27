@@ -1,4 +1,7 @@
-include VocabSyntax
+module Syntax = VocabSyntax
+module Compiling = VocabCompiling
+
+let show_vocab = Syntax.show_vocab
 
 let read_vocab ic =
   let lexbuf = Lexing.from_channel ic in
