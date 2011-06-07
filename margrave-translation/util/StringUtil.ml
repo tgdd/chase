@@ -27,3 +27,8 @@ let ends_with : string -> string -> bool =
       else
         let strpost = String.sub str (strlen - postlen) postlen in
         strpost = post
+
+
+(* StringSets *)
+module StringSet = Set.Make(String)
+let list2string_set xs = List.fold_left (fun s e -> StringSet.add e s) StringSet.empty xs

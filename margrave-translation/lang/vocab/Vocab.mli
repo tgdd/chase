@@ -44,7 +44,7 @@ val output_vocab : out_channel -> Syntax.vocab -> unit
 (** Prints the string representation of the vocab to standard out. *)
 val print_vocab : Syntax.vocab -> unit
 
-module Compiling :
+module Compiler :
   sig
     (** Turns a vocab into a sorted FOL signature. *)
     val vocab2signature : Syntax.vocab -> SortedFol.sig_t

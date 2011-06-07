@@ -1,8 +1,16 @@
+(** Defines types for the AST of a policy, as well as functions for reading
+    a policy from a channel, converting a policy AST to a string, and printing
+    or outputting a policy.
+    
+    @author Theophilos Giannakopoulos (tgiannak@alum.wpi.edu) *)
+
 open StringUtil
 open SortedFol
 
+(******************************************************************************)
+(* AST TYPES *)
 type variable = { variable_name : string
-                ; variable_type : string
+                ; variable_sort : string
                 }
 
 type rule_override = { low_rule : string
@@ -24,8 +32,12 @@ type policy = { uses : string
               ; rules : rule list
               ; rule_combs : rule_comb
               }
+(* END AST TYPES *)
+(******************************************************************************)
 
-(* Show *)
+
+(******************************************************************************)
+(* SHOW *)
 (* variables *)
 let show_variable : int -> variable -> string =
   fun i v ->
@@ -33,7 +45,7 @@ let show_variable : int -> variable -> string =
     "(Variable " ^ 
     v.variable_name ^ 
     " " ^ 
-    v.variable_type ^ 
+    v.variable_sort ^ 
     ")"
 
 let show_variables : int -> variable list -> string =
@@ -114,3 +126,5 @@ let show_policy : policy -> string =
       "\n" ^ vars ^
       "\n" ^ rules ^
       "\n" ^ rule_combs ^ ")"
+(* END SHOW *)
+(******************************************************************************)

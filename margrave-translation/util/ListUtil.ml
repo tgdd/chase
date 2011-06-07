@@ -20,3 +20,8 @@ let rec last xs = match xs with
 let map_append : ('a -> 'b list) -> 'a list -> 'b list =
   fun f xs ->
     List.rev (List.fold_left (fun bs a -> List.rev_append (f a) bs ) [] xs)
+
+
+let rec find_duplicate xs = match xs with
+  | [] -> None
+  | x::xs -> if List.mem x xs then Some x else find_duplicate xs

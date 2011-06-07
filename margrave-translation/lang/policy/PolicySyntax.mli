@@ -1,10 +1,12 @@
-(** Packaged up types and function definitions for policies. *)
-
-(* Syntax *)
+(** Defines types for the AST of a policy, as well as functions for reading
+    a policy from a channel, converting a policy AST to a string, and printing
+    or outputting a policy.
+    
+    @author Theophilos Giannakopoulos (tgiannak@alum.wpi.edu) *)
 
 (** Policy free variable declaration. *)
 type variable = { variable_name : string
-                ; variable_type : string
+                ; variable_sort : string
                 }
 
 (** Policy rule override declartion. *)
@@ -32,14 +34,5 @@ type policy = { uses : string
               ; rule_combs : rule_comb
               }
 
-(** Reads a policy from the given channel. *)
-val read_policy : in_channel -> policy
-
 (** Creates a string representation of a policy. *)
 val show_policy : policy -> string
-
-(** Writes the string representation of the policy to the specified channel. *)
-val output_policy : out_channel -> policy -> unit
-
-(** Prints the string representation of the policy to standard out. *)
-val print_policy : policy -> unit

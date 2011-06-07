@@ -1,5 +1,5 @@
 module Syntax = VocabSyntax
-module Compiling = VocabCompiling
+module Compiler = VocabCompiler
 
 let show_vocab = Syntax.show_vocab
 

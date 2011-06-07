@@ -5,6 +5,8 @@ open FunUtil
 (******************************************************************************)
 (* Types *)
 
+exception Signature_violation of string
+
 (* for ease of reading *)
 type var_t = string
 type sort_t = string
@@ -59,11 +61,11 @@ module Signature =
       check sgn p arity;
       { sgn with preds = PM.add p arity sgn.preds }
     
-    let sort_mem sgn s = SG.mem_vertex sgn.sorts s
+    let mem_sort sgn s = SG.mem_vertex sgn.sorts s
     let is_subsort sgn sup sub = SG.mem_edge sgn.sorts sup sub
-    let func_mem sgn f = FM.mem f sgn.funcs
+    let mem_func sgn f = FM.mem f sgn.funcs
     let func_rank sgn f = FM.find f sgn.funcs
-    let pred_mem sgn p = PM.mem p sgn.preds
+    let mem_pred sgn p = PM.mem p sgn.preds
     let pred_arity sgn p = PM.find p sgn.preds
   end
 
@@ -250,12 +252,12 @@ let rec term_signature_violations : sig_t -> var_t list -> term -> string list =
   fun sgn env t -> match t with
     | Var(name) ->
       if List.mem name env then [] else
-      ["The variable " ^ name ^ "was not bound and was not provided in " ^
+      ["The variable " ^ name ^ " was not bound and was not provided in " ^
        "the list of allowed free variables."]
     | FunApp(name, args) ->
       let viols = term_signature_violations sgn env in
       let msgs = map_append viols args in
-      if Signature.func_mem sgn name then msgs else
+      if Signature.mem_func sgn name then msgs else
       ("Function name " ^ name ^ " does not appear in the signature.") :: msgs
 
 let rec signature_violations : sig_t
@@ -274,21 +276,27 @@ let rec signature_violations : sig_t
       viols lhs @ viols rhs
     | Exists(v,s,f) ->
       let msgs = signature_violations sgn (v::env) f in
-      if Signature.sort_mem sgn s then msgs else
+      if Signature.mem_sort sgn s then msgs else
       ("The sort name " ^ s ^ " does not appear in the signature.") :: msgs
     | Forall(v,s,f) ->
       let msgs = signature_violations sgn (v::env) f in
-      if Signature.sort_mem sgn s then msgs else
+      if Signature.mem_sort sgn s then msgs else
       ("The sort name " ^ s ^ " does not appear in the signature.") :: msgs
     | Equals(lhs,rhs) ->
       let viols = term_signature_violations sgn env in
       viols lhs @ viols rhs
     | Pred(name, terms) ->
       let msgs = map_append (term_signature_violations sgn env) terms in
-      if Signature.pred_mem sgn name then msgs else
+      if Signature.mem_pred sgn name then msgs else
       ("Predicate name " ^ name ^ " does not appear in the signature.") :: msgs
 
 let meets_signature sgn env fmla = is_empty (signature_violations sgn env fmla)
+
+let check_signature_violations sgn env fmla =
+  let msgs = signature_violations sgn env fmla in
+  match msgs with
+  | m::_ -> raise (Signature_violation m)
+  | [] -> ()
 
 let rec is_subsort sgn sub sup = match sub, sup with
     | [], [] -> true
@@ -337,8 +345,13 @@ let rec sort_violations : sig_t -> environment -> formula -> string list =
       ("Predicate " ^ name ^ " expects arity (" ^ comma_delim expected_arity ^
        ") but was used with arity (" ^ comma_delim used_arity ^ ").") :: msgs
 
-
 let well_sorted sgn env fmla = is_empty (sort_violations sgn env fmla)
+
+let check_sort_violations sgn env fmla =
+  let msgs = sort_violations sgn env fmla in
+  match msgs with
+  | m::_ -> raise (Signature_violation m)
+  | [] -> ()
 
 let well_formed  : sig_t -> environment -> formula -> bool =
   fun sgn env fmla ->

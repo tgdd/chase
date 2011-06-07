@@ -62,7 +62,7 @@ id: LOWID { $1 }
 
 target_clause: LPAREN TARGET formula RPAREN { $3 }
 formulas: formulas2 { List.rev $1 }
-formulas2: formula { [$1] }
+formulas2: /*nothing*/ { [] }
         | formulas2 formula { $2 :: $1 }
 formula: atomic_formula { $1 }
        | LPAREN AND formulas RPAREN { And $3 }
@@ -86,7 +86,7 @@ variables_clause: LPAREN VARIABLES var_decls RPAREN { $3 }
 var_decls: var_decls2 { List.rev $1 }
 var_decls2: var_decl { [$1] }
           | var_decls2 var_decl { $2 :: $1 }
-var_decl: LPAREN VARIABLE LOWID CAPID RPAREN { { variable_name = $3; variable_type = $4 } }
+var_decl: LPAREN VARIABLE LOWID CAPID RPAREN { { variable_name = $3; variable_sort = $4 } }
 
 rules_clause: LPAREN RULES rules RPAREN { $3 }
 rules: rules2 { List.rev $1 }

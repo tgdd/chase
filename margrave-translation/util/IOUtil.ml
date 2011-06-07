@@ -20,3 +20,7 @@ let call_with_out_channel : string -> (out_channel -> 'a) -> 'a =
 		    with exn -> close_out oc; raise exn in
 		  close_out oc;
 		  res
+
+
+let print_lines : string list -> unit =
+  fun lines -> List.iter print_endline lines
