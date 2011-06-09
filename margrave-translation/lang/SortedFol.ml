@@ -1,3 +1,6 @@
+(** Module for sorted first order logic type definitions and utilities.
+
+    @author Theophilos Giannakopoulos (tgiannak@alum.wpi.edu) *)
 open StringUtil 
 open ListUtil
 open FunUtil

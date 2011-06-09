@@ -1,4 +1,5 @@
 (** Module for sorted first order logic type definitions and utilities.
+
     @author Theophilos Giannakopoulos (tgiannak@alum.wpi.edu) *)
 
 exception Signature_violation of string

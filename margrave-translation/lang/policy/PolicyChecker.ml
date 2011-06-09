@@ -1,6 +1,7 @@
 (** For checking policies for consistency with respect to a signature
     and for internal consistency. For example, for checking the formulas for
     well-sortedness.
+
     @author Theophilos Giannakopoulos (tgiannak@alum.wpi.edu) *)
 
 open PolicySyntax

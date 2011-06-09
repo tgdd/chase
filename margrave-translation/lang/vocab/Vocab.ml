@@ -1,3 +1,7 @@
+(** Packaged up types and function definitions for vocabularies.
+
+    @author Theophilos Giannakopoulos (tgiannak@alum.wpi.edu) *)
+
 module Syntax = VocabSyntax
 module Compiler = VocabCompiler
 

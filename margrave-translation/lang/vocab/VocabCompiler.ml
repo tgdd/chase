@@ -1,3 +1,6 @@
+(** Type and functions for compiling a vocab into useful metadata.
+
+    @author Theophilos Giannakopoulos (tgiannak@alum.wpi.edu) *)
 open Graph
 module VS = VocabSyntax
 module SF = SortedFol
