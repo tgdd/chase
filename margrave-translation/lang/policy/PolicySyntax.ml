@@ -9,23 +9,29 @@ open SortedFol
 
 (******************************************************************************)
 (* AST TYPES *)
+(** Policy free variable declaration. *)
 type variable = { variable_name : string
                 ; variable_sort : string
                 }
 
+(** Policy rule override declartion. *)
 type rule_override = { low_rule : string
                      ; high_rules : string list
                      }
+
+(** Policy rule combination declaration. *)
 type rule_comb = { rule_fas : string list list
                  ; rule_overrides : rule_override list
                  }
 
+(** Policy rule definition. *)
 type rule = { rule_name : string
             ; rule_decision : string
             ; rule_parameters : string list
             ; rule_body : formula
             }
-              
+
+(** Policy definition. *)
 type policy = { uses : string
               ; target : formula
               ; vars : variable list

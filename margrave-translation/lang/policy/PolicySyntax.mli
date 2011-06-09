@@ -4,6 +4,8 @@
     
     @author Theophilos Giannakopoulos (tgiannak@alum.wpi.edu) *)
 
+(******************************************************************************)
+(* AST TYPES *)
 (** Policy free variable declaration. *)
 type variable = { variable_name : string
                 ; variable_sort : string
@@ -33,6 +35,13 @@ type policy = { uses : string
               ; rules : rule list
               ; rule_combs : rule_comb
               }
+(* END AST TYPES *)
+(******************************************************************************)
 
+
+(******************************************************************************)
+(* SHOW *)
 (** Creates a string representation of a policy. *)
 val show_policy : policy -> string
+(* END SHOW *)
+(******************************************************************************)

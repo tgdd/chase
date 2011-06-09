@@ -104,13 +104,13 @@ val simplify : formula -> formula
 
 (* For displaying formulas and terms *)
 
-(** Displays a plaintext representation of a formula *)
+(** A plaintext representation of a formula *)
 val show_formula : formula -> string
 
 (** Prints a list of formulas in plaintext to the channel, one per line *)
 val output_formulas : out_channel -> formula list -> unit
 
-(** Displays a LaTeX representation of the formula. *)
+(** A LaTeX representation of the formula. *)
 val show_latex_formula : formula -> string
 
 (** Prints a list of formulas in LaTeX to the channel, one per line *)

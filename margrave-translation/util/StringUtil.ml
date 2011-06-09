@@ -29,6 +29,9 @@ let ends_with : string -> string -> bool =
         strpost = post
 
 
+(* StringMaps *)
+module StringMap = Map.Make(String)
+
 (* StringSets *)
 module StringSet = Set.Make(String)
 let list2string_set xs = List.fold_left (fun s e -> StringSet.add e s) StringSet.empty xs

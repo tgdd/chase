@@ -62,7 +62,7 @@ type_decl: LPAREN TYPE CAPID RPAREN { { sort_name = $3; subsorts = [] } }
          | LPAREN TYPE CAPID RANGLE types RPAREN { { sort_name = $3; subsorts = $5 } }
 types: types2 { List.rev $1 }
 types2: CAPID { [$1] }
-     | types CAPID { $2::$1 }
+     | types2 CAPID { $2::$1 }
 
 preds_clause: LPAREN PREDICATES preds RPAREN { List.rev $3 }
 preds: /*nothing*/ { [] }

@@ -26,17 +26,21 @@ open IOUtil
     6. Compile the policy into a sorted FOL theory.
     7. Create models for the theory.
     8. Output the models to the file. *)
-let run : string -> string -> string list =
+let run : string -> string -> SortedFol.theory =
   fun policyfile outfile ->
+    (* Read the policy *)
     let policy = call_with_in_channel policyfile Policy.read_policy in
+    (* Get the vocab file location *)
     let uses = policy.Policy.Syntax.uses in
+    (* Determine the actual location--concat the dir of the policy if
+       necessary. *)
     let vocabfile = if not (Filename.is_relative uses) then uses else 
         Filename.concat (Filename.dirname policyfile) uses in
+    (* Read the vocab *)
     let vocab = call_with_in_channel vocabfile Vocab.read_vocab in
-    try let sgn = Vocab.Compiler.vocab2signature vocab in
-        Policy.Checker.check_policy sgn policy;
-        ["Build successful."]
-    with Policy.Checker.Policy_check_failure msg -> [msg]
+    (* Convert the vocab to a sorted FOL signature *)
+    let sgn = Vocab.Compiler.vocab2signature vocab in
+    snd (Policy.Compiler.policy2theory sgn policy)
 
 (** Utility for handling maybe. *)
 let maybe : 'a option -> 'a -> 'a =
@@ -104,6 +108,7 @@ let parse_arguments : unit -> (string * string) =
 
 let main () =
   let (infile, outfile) = parse_arguments() in
-  List.iter print_endline (run infile outfile)
+  let thy = (run infile outfile) in
+  SortedFol.output_latex_formulas stdout thy
 
 let _ = Printexc.print main ()

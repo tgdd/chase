@@ -1,2 +1,3 @@
-val policy2theory : PolicySyntax.policy -> SortedFol.formula list
-val augment_signature : PolicySyntax.policy -> SortedFol.sig_t -> SortedFol.sig_t
+val policy2theory : SortedFol.sig_t
+                -> PolicySyntax.policy
+                -> (SortedFol.sig_t * SortedFol.formula list)
