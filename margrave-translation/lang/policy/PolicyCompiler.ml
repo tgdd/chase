@@ -4,8 +4,59 @@ open PolicySyntax
 module SMap = StringUtil.StringMap
 module SSet = StringUtil.StringSet
 
+(* FIRST PASS: check the policy against the vocab and against general
+               restrictions - this is implemented in PolicyChecker.ml
+   SECOND PASS: determine which rules nullify which others
+   THIRD PASS:
+   Part 1: compile the rules to "matches" formulas
+   Part 2: use the graph of which rules nullify which to create the "applies"
+           formulas
+   FOURTH PASS: create each decision formula as the disjunction of its
+                associated rules "applies" formulas *)
+   
 
-  
+(* SECOND PASS: The empty structure is a map from each rule to the empty set.
+                As overriding rules are discovered, they are added to the
+                set to which each rule maps.
+                If a rule overrides itself, then the overrides declarations are 
+                in error.
+
+                Create a list of the rule names (with their associated
+                decisions) in the same order that they appear in the file. Since
+                the parsing preserves the order of the rules, the list can be
+                extracted from that. 
+                This list will be used for FA declarations.
+                
+                Create a map from decisions to all rules associated with that
+                decsion. This list will be used for Override declarations.
+                
+                For each Overrides rule combinator (Overrides a b) add
+                all of the rules associated with decision b to each rule
+                associated with a's override set. 
+                For each FA rule combinator (FA a b) for each rule r associated
+                with a, add all of the rules associated with b that come
+                before r in the file to r's override set.*)
+
+(** Module for a datatype for storing which rules override which other rules. *)
+module Overs =
+  struct
+    type t = SSet.t SMap.t
+
+    let empty : PolicySyntax.policy -> t =
+      fun p ->
+        let rules = List.map (fun r -> r.rule_name) p.rules in
+        List.fold_left (fun m r -> SMap.add r SSet.empty m)
+                       SMap.empty rules
+
+    let add : t -> string -> string -> t =
+      fun m r over -> 
+        let updated = SSet.add over (SMap.find r m) in
+        SMap.add r updated m
+    
+    let find = SMap.find
+  end
+
+
 (*(** Gets all rules that are higher priority than the specified rule in the
     given policy. Higher priority rules than a particular rule r include those
     that are specified as overriding r as well as those that both appear before

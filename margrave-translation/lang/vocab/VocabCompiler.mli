@@ -2,4 +2,5 @@
 
     @author Theophilos Giannakopoulos (tgiannak@alum.wpi.edu) *)
 
+(** Converts a vocab to a Sorted FOL siganture. *)
 val vocab2signature : VocabSyntax.vocab -> SortedFol.sig_t

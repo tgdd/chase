@@ -11,7 +11,7 @@ module Compiler = PolicyCompiler
 (** Creates a string representation of a policy. *)
 let show_policy = Syntax.show_policy
 
-(** Read a policy from the given input channel. *)
+(** Reads a policy from the given input channel. *)
 let read_policy ic =
   let lexbuf = Lexing.from_channel ic in
   PolicyParser.start PolicyLexer.token lexbuf
