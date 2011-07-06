@@ -1,10 +1,10 @@
 INCLUDES=-I fol \
 		 -I util \
-         -I margrave-translation \
-		 -I margrave-translation \
-         -I margrave-translation/policy \
-		 -I margrave-translation/vocab \
-		 -I margrave-translation/vocab/compile
+         -I margrave \
+		 -I margrave \
+         -I margrave/policy \
+		 -I margrave/vocab \
+		 -I margrave/vocab/compile
 CFLAGS=-cflags "-I +ocamlgraph"
 LFLAGS=-lflags "-I +ocamlgraph"
 LIBS=-lib graph
