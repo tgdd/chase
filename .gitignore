@@ -1,5 +1,5 @@
 #ignore ocamlbuild files
-/_build/
+*/_build/
 
 #and ocamlbuild compiled files
 *.byte
