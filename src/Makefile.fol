@@ -1,8 +1,8 @@
-INCLUDES=-I util
+INCLUDES=-I fol -I util
 CFLAGS=-cflags "-I +ocamlgraph"
 LFLAGS=-lflags "-I +ocamlgraph"
 LIBS=-lib graph
-TARGETS=run.byte
+TARGETS=example.byte
 
 all:
 	ocamlbuild $(INCLUDES) $(LIBS) $(TARGETS) $(CFLAGS) $(LFLAGS)

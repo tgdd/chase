@@ -3,7 +3,7 @@
     @author Theophilos Giannakopoulos (tgiannak@alum.wpi.edu) *)
 open Graph
 module VS = VocabSyntax
-module SF = SortedFol
+module SF = SortedFol.Syntax
 
 module StringGraph = Persistent.Digraph.Concrete(GraphUtil.StringVertex)
 module SortGraph = StringGraph

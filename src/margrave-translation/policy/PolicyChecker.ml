@@ -5,7 +5,7 @@
     @author Theophilos Giannakopoulos (tgiannak@alum.wpi.edu) *)
 
 open PolicySyntax
-open SortedFol
+open SortedFol.Syntax
 
 exception Policy_check_failure of string
 

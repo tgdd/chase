@@ -2,9 +2,9 @@
 
     @author Theophilos Giannakopoulos (tgiannak@alum.wpi.edu) *)
 
-module Syntax = FolSyntax
-module Parser = FolParser
-module Lexer = FolLexer
+module Syntax = SortedFolSyntax
+module Parser = SortedFolParser
+module Lexer = SortedFolLexer
 
 (******************************************************************************)
 (* For parsing formulas *)

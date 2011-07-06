@@ -25,12 +25,12 @@ type rule_comb = { rule_fas : string list list
 type rule = { rule_name : string
             ; rule_decision : string
             ; rule_parameters : string list
-            ; rule_body : SortedFol.formula
+            ; rule_body : SortedFol.Syntax.formula
             }
               
 (** Policy definition. *)
 type policy = { uses : string
-              ; target : SortedFol.formula
+              ; target : SortedFol.Syntax.formula
               ; vars : variable list
               ; rules : rule list
               ; rule_combs : rule_comb

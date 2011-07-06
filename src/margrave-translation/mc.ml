@@ -26,7 +26,7 @@ open IOUtil
     6. Compile the policy into a sorted FOL theory.
     7. Create models for the theory.
     8. Output the models to the file. *)
-let run : string -> string -> SortedFol.theory =
+let run : string -> string -> SortedFol.Syntax.theory =
   fun policyfile outfile ->
     (* Read the policy *)
     let policy = call_with_in_channel policyfile Policy.read_policy in
@@ -109,6 +109,6 @@ let parse_arguments : unit -> (string * string) =
 let main () =
   let (infile, outfile) = parse_arguments() in
   let thy = (run infile outfile) in
-  SortedFol.output_latex_formulas stdout thy
+  SortedFol.Syntax.output_latex_formulas stdout thy
 
 let _ = Printexc.print main ()

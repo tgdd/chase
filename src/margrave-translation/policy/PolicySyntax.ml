@@ -5,7 +5,7 @@
     @author Theophilos Giannakopoulos (tgiannak@alum.wpi.edu) *)
 
 open StringUtil
-open SortedFol
+open SortedFol.Syntax
 
 (******************************************************************************)
 (* AST TYPES *)

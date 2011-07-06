@@ -1,4 +1,4 @@
-open Fol
+open SortedFol
 
 let _ =
   let thy = string2theory "(exists y A (y = c))" in

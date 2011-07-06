@@ -1,4 +1,4 @@
-open SortedFol
+open SortedFol.Syntax
 open PolicySyntax
 
 module SMap = StringUtil.StringMap

@@ -1,0 +1,17 @@
+INCLUDES=-I fol \
+		 -I util \
+         -I margrave-translation \
+		 -I margrave-translation \
+         -I margrave-translation/policy \
+		 -I margrave-translation/vocab \
+		 -I margrave-translation/vocab/compile
+CFLAGS=-cflags "-I +ocamlgraph"
+LFLAGS=-lflags "-I +ocamlgraph"
+LIBS=-lib graph
+TARGETS=mc.byte
+
+all:
+	ocamlbuild $(INCLUDES) $(LIBS) $(TARGETS) $(CFLAGS) $(LFLAGS)
+
+clean:
+	ocamlbuild -clean

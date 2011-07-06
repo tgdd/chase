@@ -1,5 +1,5 @@
 {
-  open FolParser 
+  open SortedFolParser 
 }
 
 let alpha = ['a'-'z''A'-'Z']

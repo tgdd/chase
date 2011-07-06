@@ -1,5 +1,5 @@
 %{
-open FolSyntax
+open SortedFolSyntax
 open Lexing
 
 let parse_error s =
@@ -19,7 +19,7 @@ let parse_error s =
 %token EOF
 %token <string> LOWID CAPID
 
-%type <FolSyntax.theory> parse_theory
+%type <SortedFolSyntax.theory> parse_theory
 %start parse_theory
 
 %%

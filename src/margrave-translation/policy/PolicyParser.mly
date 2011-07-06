@@ -1,6 +1,6 @@
 %{
 open Printf
-open SortedFol
+open SortedFol.Syntax
 open PolicySyntax
 open Lexing
 
