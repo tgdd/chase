@@ -17,8 +17,10 @@ let string2theory : string -> Syntax.theory =
 (** Parses a string to produce a formula. Does not check to see if the string
     contains multiple formulas or no formulas, just parses and returns the
     first one in the list. *)
-let string2formula s =
-  List.hd (string2theory s)
+let string2formula : string -> Syntax.formula =
+  fun s ->
+    let lexbuf = Lexing.from_string s in
+    Parser.parse_formula Lexer.token lexbuf
 
 (** Parses an input channel to produce a theory *)
 let in_channel2theory ic =

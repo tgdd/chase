@@ -21,10 +21,13 @@ let parse_error s =
 
 %type <SortedFolSyntax.theory> parse_theory
 %start parse_theory
+%type <SortedFolSyntax.formula> parse_formula
+%start parse_formula
 
 %%
 
 parse_theory: formulas { $1 }
+parse_formula: formula { $1 }
 
 formulas: formulas2 { List.rev $1 }
 formulas2: /*nothing*/ { [] }
