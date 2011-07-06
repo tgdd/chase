@@ -2,7 +2,7 @@ INCLUDES=-I util
 CFLAGS=-cflags "-I +ocamlgraph"
 LFLAGS=-lflags "-I +ocamlgraph"
 LIBS=-lib graph
-TARGETS=Fol.cmo 
+TARGETS=run.byte
 
 all:
 	ocamlbuild $(INCLUDES) $(LIBS) $(TARGETS) $(CFLAGS) $(LFLAGS)
