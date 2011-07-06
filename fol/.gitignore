@@ -1,0 +1,6 @@
+#ignore ocamlbuild files
+/_build/
+
+#and ocamlbuild compiled files
+*.byte
+*.native
