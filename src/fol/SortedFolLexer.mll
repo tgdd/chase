@@ -23,6 +23,8 @@ rule token = parse
   | "iff" { IFF }
   | "exists" { EXISTS }
   | "forall" { FORALL }
+  | "true" { TRUE }
+  | "false" { FALSE }
   | "=" { EQUALS }
   | '\'' { QUOTE }
   | lowid as id { LOWID id }

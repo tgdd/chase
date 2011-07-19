@@ -1,5 +1,5 @@
 %{
-open SortedFolSyntax
+open SortedFolFormulas
 open Lexing
 
 let parse_error s =
@@ -14,14 +14,15 @@ let parse_error s =
 
 %token LPAREN RPAREN
 %token AND OR NOT IMPLIES IFF EXISTS FORALL EQUALS
+%token TRUE FALSE
 %token VARIABLES VARIABLE  
 %token QUOTE
 %token EOF
 %token <string> LOWID CAPID
 
-%type <SortedFolSyntax.theory> parse_theory
+%type <SortedFolFormulas.theory> parse_theory
 %start parse_theory
-%type <SortedFolSyntax.formula> parse_formula
+%type <SortedFolFormulas.formula> parse_formula
 %start parse_formula
 
 %%
@@ -40,6 +41,8 @@ formula: atomic_formula { $1 }
        | LPAREN IFF formula formula RPAREN { Iff($3, $4) }
        | LPAREN EXISTS LOWID CAPID formula RPAREN { Exists($3, $4, $5) }
        | LPAREN FORALL LOWID CAPID formula RPAREN { Forall($3, $4, $5) }
+       | TRUE { tru }
+       | FALSE { fals }
 atomic_formula: LPAREN term EQUALS term RPAREN { Equals($2, $4) }
               | LPAREN LOWID terms RPAREN { Pred($2, $3) }
 terms: terms2 { List.rev $1 }

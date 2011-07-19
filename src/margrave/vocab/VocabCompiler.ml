@@ -4,6 +4,7 @@
 open Graph
 module VS = VocabSyntax
 module SF = SortedFol.Syntax
+module Signature = SortedFol.Signature
 
 module StringGraph = Persistent.Digraph.Concrete(GraphUtil.StringVertex)
 module SortGraph = StringGraph
@@ -21,18 +22,18 @@ let sort2subsorts s =
 
 (** Adds the specified predicate to the signature. *)
 let add_pred sgn p =
-  SF.Signature.add_pred sgn p.VS.pred_name p.VS.pred_arity
+  Signature.Signature.add_pred sgn p.VS.pred_name p.VS.pred_arity
 
 (** Adds the specified function to the signature as a nullary function. *)
 let add_const sgn c =
-  SF.Signature.add_func sgn c.VS.const_name [] c.VS.const_sort
+  Signature.Signature.add_func sgn c.VS.const_name [] c.VS.const_sort
 
 (** Adds the specified function to the signature. *)
 let add_func sgn f =
-  SF.Signature.add_func sgn f.VS.func_name f.VS.func_arity f.VS.func_sort
+  Signature.Signature.add_func sgn f.VS.func_name f.VS.func_arity f.VS.func_sort
 
 (** Converts a vocab to a Sorted FOL siganture. *)
-let vocab2signature : VS.vocab -> SF.sig_t =
+let vocab2signature : VS.vocab -> Signature.sig_t =
   fun { VS.vocab_name = name
       ; VS.sorts = sorts
       ; VS.preds = preds
@@ -41,7 +42,7 @@ let vocab2signature : VS.vocab -> SF.sig_t =
       } ->
     let sort_names = ListUtil.map_append sort2names sorts in
     let subsorts = ListUtil.map_append sort2subsorts sorts in
-    let sgn = SF.Signature.init sort_names subsorts in
+    let sgn = Signature.Signature.init sort_names subsorts in
     let sgn = List.fold_left add_pred sgn preds in
     let sgn = List.fold_left add_const sgn consts in
     let sgn = List.fold_left add_func sgn funcs in

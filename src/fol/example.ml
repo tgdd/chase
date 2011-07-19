@@ -1,4 +1,4 @@
-open SortedFol
+open SortedFolBasic
 
 let _ =
   let thy = string2theory "(exists y A (y = c)) (forall b B (not (r b)))" in

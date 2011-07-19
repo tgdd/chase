@@ -2,7 +2,7 @@
 
     @author Theophilos Giannakopoulos (tgiannak@alum.wpi.edu) *)
 
-module Syntax = SortedFolSyntax
+module Syntax = SortedFolFormulas
 module Parser = SortedFolParser
 module Lexer = SortedFolLexer
 

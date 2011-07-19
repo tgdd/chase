@@ -1,4 +1,5 @@
 (* String processing *)
+open Batteries
 
 (** Turns list of strings into a string of lines. *)
 let unlines = String.concat "\n"
@@ -29,9 +30,5 @@ let ends_with : string -> string -> bool =
         strpost = post
 
 
-(* StringMaps *)
-module StringMap = Map.Make(String)
-
 (* StringSets *)
-module StringSet = Set.Make(String)
-let list2string_set xs = List.fold_left (fun s e -> StringSet.add e s) StringSet.empty xs
+let list2string_set xs = List.fold_left (fun s e -> Set.StringSet.add e s) Set.StringSet.empty xs

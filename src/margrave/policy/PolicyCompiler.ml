@@ -1,60 +1,35 @@
 open SortedFol.Syntax
 open PolicySyntax
 
-module SMap = StringUtil.StringMap
-module SSet = StringUtil.StringSet
+open Overrides
 
-(* FIRST PASS: check the policy against the vocab and against general
-               restrictions - this is implemented in PolicyChecker.ml
-   SECOND PASS: determine which rules nullify which others
-   THIRD PASS:
-   Part 1: compile the rules to "matches" formulas
-   Part 2: use the graph of which rules nullify which to create the "applies"
-           formulas
-   FOURTH PASS: create each decision formula as the disjunction of its
-                associated rules "applies" formulas *)
-   
-
-(* SECOND PASS: The empty structure is a map from each rule to the empty set.
-                As overriding rules are discovered, they are added to the
-                set to which each rule maps.
-                If a rule overrides itself, then the overrides declarations are 
-                in error.
-
-                Create a list of the rule names (with their associated
-                decisions) in the same order that they appear in the file. Since
-                the parsing preserves the order of the rules, the list can be
-                extracted from that. 
-                This list will be used for FA declarations.
-                
-                Create a map from decisions to all rules associated with that
-                decsion. This list will be used for Override declarations.
-                
-                For each Overrides rule combinator (Overrides a b) add
-                all of the rules associated with decision b to each rule
-                associated with a's override set. 
-                For each FA rule combinator (FA a b) for each rule r associated
-                with a, add all of the rules associated with b that come
-                before r in the file to r's override set.*)
-
-(** Module for a datatype for storing which rules override which other rules. *)
-module Overs =
-  struct
-    type t = SSet.t SMap.t
-
-    let empty : PolicySyntax.policy -> t =
-      fun p ->
-        let rules = List.map (fun r -> r.rule_name) p.rules in
-        List.fold_left (fun m r -> SMap.add r SSet.empty m)
-                       SMap.empty rules
-
-    let add : t -> string -> string -> t =
-      fun m r over -> 
-        let updated = SSet.add over (SMap.find r m) in
-        SMap.add r updated m
+(*
+(** Takes a policy, list of decisions, and a particular rule and finds
+    all rules with those decisions that come before the specified rule in
+    the policy. *)
+let get_earlier_rules_with_decisions : policy -> string list -> rule -> rule list =
+  fun p ds r ->
+    let earlier_rules = get_earlier_rules p r in
+    let rules_with_decisions = decisions2rules p ds r in
+    SSet.inter (list2string_set earlier_rules)
+               (list2string_set rules_with_decisions) *)
     
-    let find = SMap.find
-  end
+
+
+(** For every decision in the list, take every associated rule, and 
+let add_fa_nulls : rule list -> Nulls.t -> string list -> Nulls.t =
+  fun rules nulls fa *)
+(*
+(** Adds all of the nullifications due to FA declarations to nulls. *)
+let fa_nulls rules fas nulls =
+  List.fold_left (add_fa_nulls rules) nulls fas
+  
+
+let get_nullifies : policy -> Nulls.t =
+  fun p ->
+    let fa_nulls = get_fa_nulls p.rules p.rule_combs.rule_fas Nulls.empty in
+    get_over_nulls p.rules p.rule_combs.rule_overrides fa_nulls
+    *)
 
 
 (*(** Gets all rules that are higher priority than the specified rule in the

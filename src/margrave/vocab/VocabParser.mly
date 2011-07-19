@@ -78,6 +78,6 @@ funcs_clause: LPAREN FUNCTIONS funcs RPAREN { List.rev $3 }
 funcs: /*nothing*/ { [] }
      | funcs func { $2::$1 }
 func: LPAREN FUNCTION LOWID types RPAREN
-      { { func_name = $3; func_arity = init $4; func_sort = last $4 } }
+      { { func_name = $3; func_arity = initial $4; func_sort = last $4 } }
 
 %%

@@ -18,6 +18,7 @@ let parse_error s =
 %token POLICY USES
 %token TARGET
 %token AND OR NOT IMPLIES IFF EXISTS FORALL EQUALS
+%token TRUE FALSE
 %token VARIABLES VARIABLE  
 %token QUOTE
 %token RULES COLONDASH
@@ -72,6 +73,8 @@ formula: atomic_formula { $1 }
        | LPAREN IFF formula formula RPAREN { Iff($3, $4) }
        | LPAREN EXISTS LOWID CAPID formula RPAREN { Exists($3, $4, $5) }
        | LPAREN FORALL LOWID CAPID formula RPAREN { Forall($3, $4, $5) }
+       | TRUE { tru }
+       | FALSE { fals }
 atomic_formula: LPAREN term EQUALS term RPAREN { Equals($2, $4) }
               | LPAREN LOWID terms RPAREN { Pred($2, $3) }
 terms: terms2 { List.rev $1 }

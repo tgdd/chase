@@ -1,3 +1,3 @@
-val policy2theory : SortedFol.Syntax.sig_t
+val policy2theory : SortedFol.Signature.sig_t
                 -> PolicySyntax.policy
-                -> (SortedFol.Syntax.sig_t * SortedFol.Syntax.formula list)
+                -> (SortedFol.Signature.sig_t * SortedFol.Syntax.formula list)

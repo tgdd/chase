@@ -4,12 +4,15 @@
 
     @author Theophilos Giannakopoulos (tgiannak@alum.wpi.edu) *)
 
+open Batteries
 open PolicySyntax
+open SortedFol
 open SortedFol.Syntax
+open SortedFol.Signature
 
 exception Policy_check_failure of string
 
-module StringSet = StringUtil.StringSet
+module StringSet = Set.StringSet
 
 (******************************************************************************)
 (* HELPERS *)
