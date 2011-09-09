@@ -1,0 +1,11 @@
+(Policy uses example.vocab
+ (Target (forall a Student (exists b Student (a = b))))
+ (Variables (Variable s Student)
+            (Variable p Professor)
+            (Variable a Action)
+            (Variable r Resource))
+ (Rules (rule1 = (permit s a r) :-
+                 (exists adv Professor (adv = advisor(s))))
+        (rule2 = (deny s a r) :-
+                 (exists adv Professor (adv = advisor(s)))))
+ (RComb (Overrides permit deny)))

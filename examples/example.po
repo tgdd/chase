@@ -1,0 +1,11 @@
+Sorts: Subject,Student,Resource,Professor,Action,
+Subsorts: Subject < Subject; Subject < Student; Subject < Professor; Student < Student; Resource < Resource; Professor < Professor; Action < Action; 
+Preds: rule2_{matches} Subject Action Resource; rule2_{applies} Subject Action Resource; rule1_{matches} Subject Action Resource; rule1_{applies} Subject Action Resource; permit Subject Action Resource; deny Subject Action Resource; 
+Funcs: tim  -> Student; dan  -> Professor; advisor Student -> Professor; 
+
+\[ \left( \operatorname{rule1_{matches}}( s, a, r) \Leftrightarrow \bigwedge\left\lbrace  \left( \forall^{Student} a .  \left( \exists^{Student} b .  \left( a = b \right)  \right)  \right) ,  \left( \exists^{Professor} adv .  \left( adv = \operatorname{advisor}( s) \right)  \right)  \right\rbrace \right) \]
+\[ \left( \operatorname{rule2_{matches}}( s, a, r) \Leftrightarrow \bigwedge\left\lbrace  \left( \forall^{Student} a .  \left( \exists^{Student} b .  \left( a = b \right)  \right)  \right) ,  \left( \exists^{Professor} adv .  \left( adv = \operatorname{advisor}( s) \right)  \right)  \right\rbrace \right) \]
+\[ \left( \operatorname{rule1_{applies}}( s, a, r) \Leftrightarrow \bigwedge\left\lbrace \operatorname{rule1_{matches}}( s, a, r),  \left( \neg \bigvee\left\lbrace \operatorname{rule2_{matches}}( s, a, r) \right\rbrace \right)  \right\rbrace \right) \]
+\[ \left( \operatorname{rule2_{applies}}( s, a, r) \Leftrightarrow \bigwedge\left\lbrace \operatorname{rule2_{matches}}( s, a, r),  \left( \neg \bot \right)  \right\rbrace \right) \]
+\[ \left( \operatorname{permit}( s, a, r) \Leftrightarrow \bigvee\left\lbrace \operatorname{rule1_{applies}}( s, a, r) \right\rbrace \right) \]
+\[ \left( \operatorname{deny}( s, a, r) \Leftrightarrow \bigvee\left\lbrace \operatorname{rule2_{applies}}( s, a, r) \right\rbrace \right) \]
