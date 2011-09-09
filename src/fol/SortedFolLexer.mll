@@ -4,10 +4,7 @@
 
 let alpha = ['a'-'z''A'-'Z']
 let num = ['0'-'9']
-let lowid = ['a'-'z'](alpha|num)*
-let capid = ['A'-'Z'](alpha|num)*
-let fullid = ['a'-'z''A'-'Z''0'-'9''/''.''-']*
-let id = alpha(alpha|num)*
+let iden = alpha(alpha|num|"_"|"{"|"}")*
 let newline = ['\n''\r']|"\n\r"
 let whitespace = [' ' '\t']
 
@@ -27,6 +24,5 @@ rule token = parse
   | "false" { FALSE }
   | "=" { EQUALS }
   | '\'' { QUOTE }
-  | lowid as id { LOWID id }
-  | capid as id { CAPID id }
+  | iden as id { IDEN id }
   | eof { EOF }

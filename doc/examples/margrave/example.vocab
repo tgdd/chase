@@ -1,8 +1,0 @@
-(Vocab vname
- (Types (Type Subject > Student Professor)
-        (Type Action)
-        (Type Resource))
- (Predicates (Predicate permit Subject Action Resource)
-             (Predicate deny Subject Action Resource))
- (Constants (Constant dan Professor) (Constant tim Student))
- (Functions (Function advisor Student Professor)))

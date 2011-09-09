@@ -1,1 +1,2 @@
 <**/*>: package(batteries),package(threads),package(ocamlgraph)
+<tests/**/*>: package(batteries),package(threads),package(ocamlgraph),package(ounit)

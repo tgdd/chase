@@ -25,7 +25,7 @@ type formula = And of formula list
              | Exists of var_t * sort_t * formula
              | Forall of var_t * sort_t * formula
              | Equals of term * term
-             | Pred of pred_t * term list
+             | Atom of pred_t * term list
   
 let tru = And([])
 let fals = Or([])
@@ -34,40 +34,6 @@ type theory = formula list
 
 
 
-
-(******************************************************************************)
-(* Simplifying formulas *)
-
-(* helpers for flatten_and_or *)
-let is_and f = match f with
-  | And(_) -> true
-  | _ -> false
-let extract_and f = match f with
-  | And(fs) -> fs
-  | _ -> [f]
-
-let is_or f = match f with
-  | Or(_) -> true
-  | _ -> false
-let extract_or f = match f with
-  | Or(fs) -> fs
-  | _ -> [f]
-
-(* Flattens out nested And and Or constructs. Useful for printing *)
-let rec flatten_and_or : formula -> formula =
-  let flatten = flatten_and_or in
-  fun f -> match f with
-    | And(fs) -> And(map_append extract_and (List.map flatten fs))
-    | Or(fs) -> Or(map_append extract_or (List.map flatten fs))
-    | Not(f) -> Not(flatten f)
-    | Implies(lhs, rhs) -> Implies(flatten lhs, flatten rhs)
-    | Iff(lhs, rhs) ->  Iff(flatten lhs, flatten rhs)
-    | Exists(name, sort, body) -> Exists(name, sort, flatten body)
-    | Forall(name, sort, body) -> Forall(name, sort, flatten body)
-    | Equals(_, _) -> f
-    | Pred(_, _) -> f
-
-let simplify = flatten_and_or
 
 (******************************************************************************)
 (* For displaying formulas and terms *)
@@ -102,15 +68,14 @@ let rec show_formula : formula -> string =
       show_quant "forall" v vtype f
     | Equals(lhs, rhs) -> 
       "(" ^ (show_term lhs) ^ " = " ^ (show_term rhs) ^ ")"
-    | Pred(pred, terms) -> 
+    | Atom(pred, terms) -> 
       "(" ^ unwords (pred :: (List.map show_term terms)) ^ ")"
 and show_quant : string -> var_t -> sort_t -> formula -> string =
   fun quant v vtype f ->
       "(" ^ quant ^ " " ^ v ^ " : " ^ vtype ^ " " ^ show_formula f ^ ")"
 
 let output_formulas oc formulas =
-  let formulas = List.map flatten_and_or formulas in
-  	output_string oc (unlines (List.map show_formula formulas))
+  output_string oc (unlines (List.map show_formula formulas))
 
 (* show for LaTeX *)
 
@@ -144,7 +109,7 @@ let rec latex_formula : formula -> string =
      latex_quant "\\forall" name sort f
     | Equals(lhs, rhs) ->
       tex_parens (latex_term lhs ^ " = " ^ latex_term rhs)
-    | Pred(name, args) ->
+    | Atom(name, args) ->
       "\\operatorname{" ^ name ^ "}( " ^
       comma_delim (List.map latex_term args) ^ ")"
 and latex_quant : string -> var_t -> sort_t -> formula -> string =
@@ -154,8 +119,7 @@ and latex_quant : string -> var_t -> sort_t -> formula -> string =
 let show_latex_formula = latex_formula
 
 let output_latex_formulas oc formulas =
-  let formulas = List.map flatten_and_or formulas in
-  	output_string oc & unlines & List.map ((brace_with "\\[" "\\]") <.>
-                                          latex_formula)
+ 	output_string oc & unlines & List.map ((brace_with "\\[" "\\]") <.>
+                                        latex_formula)
                                         formulas
 

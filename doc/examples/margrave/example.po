@@ -1,2 +1,0 @@
-\[\left( \bigwedge\left\lbrace \left( \forall^{A} a . \left( \forall^{B} b . \left( a = b\right) \right) \right), \left( x = y\right), \operatorname{r}( y, x) \right\rbrace \Rightarrow \operatorname{permit}( x, y) \right)\]
-\[\left( \bigwedge\left\lbrace \left( \forall^{A} a . \left( \forall^{B} b . \left( a = b\right) \right) \right), \left( \exists^{A} v . \left(\neg \left( x = y\right) \right) \right) \right\rbrace \Rightarrow \operatorname{deny}( x, y) \right)\]

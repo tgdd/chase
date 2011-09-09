@@ -28,7 +28,7 @@ type formula = And of formula list
              | Exists of var_t * sort_t * formula
              | Forall of var_t * sort_t * formula
              | Equals of term * term
-             | Pred of pred_t * term list
+             | Atom of pred_t * term list
   
 (** Shorthand for True which is represented as the empty conjunction. *)
 val tru : formula
@@ -37,9 +37,6 @@ val tru : formula
 val fals : formula
 
 type theory = formula list
-
-(** Attempts to simplify the formula (while maintaining logical equivalence). *)
-val simplify : formula -> formula
 
 (******************************************************************************)
 (* For displaying formulas and terms *)
